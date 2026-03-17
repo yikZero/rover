@@ -1,284 +1,292 @@
-# Rover — RSS Daily Digest Platform Design
+# Rover — AI-Curated Daily Tech Digest
+
+**Date:** 2026-03-17
+**Status:** Approved
 
 ## Overview
 
-Rover is a personal RSS digest platform. Authenticated users manage RSS feeds, and every day at 09:00 Beijing time an AI generates a per-source summarized report. Users can optionally receive the digest via Telegram. Unauthenticated visitors see only a login page.
+Rover is a public-facing daily tech digest platform. An automated pipeline fetches articles from curated RSS feeds, scores them with AI across multiple dimensions, and publishes a daily top 5-10 selection with Chinese summaries. All visitors can browse current and historical digests without login. Only the site owner can manage RSS feeds via a password-protected admin panel.
 
-## Tech Stack
+## Architecture
 
-- **Framework**: Next.js 16 (App Router, React 19)
-- **Auth**: Supabase Auth (Google OAuth)
-- **Database**: Supabase PostgreSQL + Drizzle ORM
-- **AI**: Vercel AI SDK + Google Gemini (`gemini-2.5-flash`)
-- **Cron**: Vercel Cron Jobs
-- **Telegram**: Bot API (webhook binding)
-- **Styling**: Tailwind CSS v4 + shadcn/ui
-- **Data fetching**: SWR
+Next.js 16 App Router (React 19), all-in-one deployment. Cron job runs as an API route triggered by Vercel Cron or an external scheduler.
 
----
+**Stack:**
+- Next.js 16 + React 19 (App Router, SSR)
+- Drizzle ORM + PostgreSQL (direct connection via `DATABASE_URL`)
+- Vercel AI SDK v6 + Google Gemini (`gemini-2.5-flash`)
+- Tailwind CSS v4 (OKLch color system, light/dark themes)
+- shadcn/ui (admin panel components)
+- SWR (`useSWRInfinite` for infinite scroll)
+- `rss-parser` for RSS feed parsing
+- `zod` for AI structured output schema validation
 
-## 1. Data Model
+## Data Model
 
-All tables live in Supabase PostgreSQL. IDs use `bigint generated always as identity` (except `profiles.id` which mirrors `auth.users.id`). Text columns use `text`. Timestamps use `timestamptz`. All tables have RLS enabled and forced.
-
-### profiles
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | = auth.users.id |
-| email | text | |
-| telegram_chat_id | bigint | Set after Telegram binding |
-| telegram_bind_token | text | One-time binding token |
-| created_at | timestamptz default now() | |
-| updated_at | timestamptz default now() | |
+All tables use `bigint generated always as identity` primary keys per Postgres best practices. Timestamps are `timestamptz`. Foreign keys are explicitly indexed.
 
 ### feeds
 
 | Column | Type | Notes |
 |--------|------|-------|
-| id | bigint generated always as identity PK | |
-| user_id | uuid FK → profiles, indexed | |
-| title | text | Auto-parsed from RSS |
-| url | text | |
-| site_url | text | |
-| last_fetched_at | timestamptz | |
-| is_active | boolean default true | |
-| created_at | timestamptz default now() | |
+| id | bigint identity PK | |
+| title | text NOT NULL | Feed name, e.g. "Hacker News" |
+| url | text UNIQUE NOT NULL | RSS feed URL |
+| site_url | text | Feed homepage |
+| is_active | boolean DEFAULT true | Enable/disable toggle |
+| created_at | timestamptz DEFAULT now() | |
+
+- Partial index: `ON (id) WHERE is_active = true`
+- Not publicly accessible (admin only)
 
 ### articles
 
 | Column | Type | Notes |
 |--------|------|-------|
-| id | bigint generated always as identity PK | |
-| feed_id | bigint FK → feeds, indexed | |
-| guid | text not null | RSS item unique ID |
-| title | text | |
-| link | text | |
-| summary | text | Original description/excerpt |
-| published_at | timestamptz | |
-| created_at | timestamptz default now() | |
+| id | bigint identity PK | |
+| feed_id | bigint FK → feeds NOT NULL | |
+| title | text NOT NULL | Original title |
+| url | text UNIQUE NOT NULL | Original link (dedup key) |
+| content | text | Article content/description |
+| published_at | timestamptz | Publish time from feed |
+| created_at | timestamptz DEFAULT now() | |
 
-Unique constraint: `(feed_id, guid)` for deduplication.
+- Index: `ON (feed_id)` — FK index
+- Index: `ON (published_at DESC)` — time-based queries
+
+### scores
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint identity PK | |
+| article_id | bigint FK → articles, UNIQUE | One score per article |
+| info_density | smallint CHECK (0-100) | Information density |
+| popularity | smallint CHECK (0-100) | Community buzz / influence |
+| practicality | smallint CHECK (0-100) | Real-world applicability |
+| total | smallint CHECK (0-100) | Weighted composite score |
+| created_at | timestamptz DEFAULT now() | |
+
+- Index: `ON (article_id)` — FK index
+- Index: `ON (total DESC)` — sort by score
+- Weighted formula (computed server-side): `total = info_density * 0.4 + popularity * 0.3 + practicality * 0.3`
 
 ### daily_digests
 
 | Column | Type | Notes |
 |--------|------|-------|
-| id | bigint generated always as identity PK | |
-| user_id | uuid FK → profiles, indexed | |
-| digest_date | date not null | |
-| content | text | Markdown report |
-| telegram_sent | boolean default false | |
-| created_at | timestamptz default now() | |
+| id | bigint identity PK | |
+| date | date UNIQUE NOT NULL | Which day's digest |
+| created_at | timestamptz DEFAULT now() | |
 
-Unique constraint: `(user_id, digest_date)` — one digest per user per day.
+- Index: `ON (date DESC)` — cursor pagination
 
-### Indexes
+### digest_articles
 
-- `feeds.user_id` — B-tree (RLS policy, user feed queries)
-- `articles.feed_id` — B-tree (join with feeds)
-- `articles(feed_id, guid)` — unique index (dedup)
-- `daily_digests.user_id` — B-tree (RLS policy, user digest queries)
-- `daily_digests(user_id, digest_date)` — unique index
+| Column | Type | Notes |
+|--------|------|-------|
+| digest_id | bigint FK → daily_digests | |
+| article_id | bigint FK → articles | |
+| rank | smallint NOT NULL | Display order |
+| summary | text NOT NULL | AI-generated Chinese summary |
+| PK | (digest_id, article_id) | Composite primary key |
 
-### RLS Policies
+- Index: `ON (digest_id)` — FK index
+- Index: `ON (article_id)` — FK index
 
-All tables enable RLS with `force row level security`. Policies use `(select auth.uid())` (wrapped in SELECT to avoid per-row evaluation):
+## Routes
 
-- **profiles**: users can read/update only their own row (`id = (select auth.uid())`)
-- **feeds**: users can CRUD only their own feeds (`user_id = (select auth.uid())`)
-- **articles**: users can read articles belonging to their feeds (via join or security definer function)
-- **daily_digests**: users can read only their own digests (`user_id = (select auth.uid())`)
+### Public Pages (no auth)
 
-Cron API routes bypass RLS by using the Drizzle client with the `DATABASE_URL` (service role), not the Supabase client.
+| Route | Description |
+|-------|-------------|
+| `/` | Today's digest — top 5-10 articles with summaries and scores |
+| `/digests` | Historical digests — infinite scroll, reverse chronological |
+| `/digests/[date]` | Specific day's digest, e.g. `/digests/2026-03-15` |
 
----
+### Admin Pages (password auth)
 
-## 2. Authentication & Routing
+| Route | Description |
+|-------|-------------|
+| `/admin/login` | Password login page |
+| `/admin` | Dashboard — RSS feed list with enable/disable/delete |
+| `/admin/feeds/new` | Add new feed — URL input, auto-parse title |
 
-### Supabase Google OAuth Flow
+### API Routes
 
-1. User visits `/login`, clicks "Sign in with Google"
-2. Supabase client calls `signInWithOAuth({ provider: 'google' })`
-3. Google redirects back to `/auth/callback` (API route)
-4. Callback exchanges `code` for session, sets cookie, redirects to `/`
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/digests` | GET | Paginated digest list (cursor=date) |
+| `/api/digests/[date]` | GET | Single day's digest with articles |
+| `/api/cron/daily` | POST | Cron trigger: fetch → score → summarize |
+| `/api/feeds/validate` | POST | Validate RSS URL (admin only) |
 
-### Route Protection — `proxy.ts`
+## Admin Authentication
 
-Next.js 16 uses `proxy.ts` (replaces `middleware.ts`):
+Simple password protection, suitable for single-owner usage.
+
+- Environment variable `ADMIN_PASSWORD` stores the password
+- `/admin/login` page: input password → POST to login API
+- On success: set httpOnly signed cookie with session token
+- `proxy.ts` intercepts `/admin/*` routes, checks cookie, redirects to `/admin/login` if invalid
+- Can be upgraded to OAuth later without structural changes
+
+### proxy.ts
 
 ```typescript
 export default async function proxy(req: NextRequest) {
-  // Check Supabase session from cookie
-  // Unauthenticated + protected route → redirect /login
-  // Authenticated + /login → redirect /
+  const path = req.nextUrl.pathname
+
+  if (path.startsWith('/admin') && path !== '/admin/login') {
+    // Check httpOnly session cookie
+    // Invalid or missing → redirect to /admin/login
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)']
+  matcher: ['/admin/:path*']
 }
 ```
 
-### Page Structure
+## Cron Pipeline
 
-```
-app/
-  login/page.tsx              — Login page (Google OAuth button)
-  auth/callback/route.ts      — OAuth callback handler
-  (app)/                      — Protected route group
-    layout.tsx                — Navigation layout
-    page.tsx                  — Today's digest
-    feeds/page.tsx            — RSS feed management
-    history/page.tsx          — Historical digests list
-    settings/page.tsx         — Telegram binding
-  api/
-    feeds/validate/route.ts   — Validate RSS URL
-    cron/daily/route.ts       — Vercel Cron entry point
-    telegram/webhook/route.ts — Telegram Bot webhook
-proxy.ts                      — Route protection
-```
+Triggered daily at UTC 01:00 (Beijing 09:00) via `POST /api/cron/daily` with `Authorization: Bearer ${CRON_SECRET}`.
 
----
+### Step 1 — Fetch Articles
 
-## 3. Core Business Flows
+- Query all feeds where `is_active = true`
+- Parse each feed with `rss-parser`, extract articles published in the last 24h
+- Insert into `articles` with `ON CONFLICT (url) DO NOTHING` for dedup
+- Single feed failure does not block others — log error and continue
 
-### RSS Feed Management
+### Step 2 — AI Scoring
 
-1. User enters RSS URL on `/feeds`, clicks add
-2. `POST /api/feeds/validate` — fetches URL, parses XML (RSS 2.0 / Atom), returns feed title and item count
-3. Validation passes → insert into `feeds`, fetch initial articles into `articles`
-4. Validation fails → frontend shows error (invalid URL or unreachable)
+- Query today's new articles that have no corresponding `scores` row
+- Batch send to Gemini (up to 20 articles per request) via `generateObject`
+- Compute `total` server-side: `info_density * 0.4 + popularity * 0.3 + practicality * 0.3`
+- Insert into `scores`
+- On AI failure: retry once, then skip the article
 
-### Daily Cron Job (Beijing 09:00 = UTC 01:00)
+### Step 3 — Generate Digest
 
-```json
-// vercel.json
-{ "crons": [{ "path": "/api/cron/daily", "schedule": "0 1 * * *" }] }
-```
+- Check if `daily_digests` already has today's date (idempotency)
+- Select top 10 articles by `total` score from today's scored articles
+- For each, call Gemini to generate a 150-200 character Chinese summary via `generateObject`
+- Create `daily_digests` row + `digest_articles` rows with rank and summary
 
-`GET /api/cron/daily` flow:
+### Estimated Execution Time
 
-1. Verify request from Vercel Cron (`CRON_SECRET` header)
-2. Query all users with active feeds
-3. For each user:
-   a. Fetch all active feeds' new articles (`published_at > yesterday 00:00 Beijing time`)
-   b. Deduplicate by `(feed_id, guid)`, insert into `articles`
-   c. Group articles by feed, call Gemini AI to generate Markdown digest
-   d. Store digest in `daily_digests`
-   e. If user has `telegram_chat_id` → send via Bot API `sendMessage`
-4. Process users in batches to avoid Vercel timeout (60s Hobby / 300s Pro)
+- 20 feeds x ~5 new articles = ~100 articles
+- Scoring 100 articles (batched): ~10-20s
+- Summarizing 10 articles: ~10-15s
+- Total: ~30-60s (within Vercel Pro 300s limit)
 
-### Telegram Binding
+## AI Prompt Strategy
 
-1. User clicks "Bind Telegram" on `/settings`
-2. Generate unique token → store in `profiles.telegram_bind_token`
-3. UI shows: "Send `/start <token>` to @RoverBot"
-4. Telegram webhook receives `/start <token>` → match token in `profiles` → write `telegram_chat_id`, clear token
-5. Frontend polls or refreshes to show binding success
+All prompts in English, outputs in Chinese where user-facing.
 
----
+### Scoring Prompt (batch, generateObject)
 
-## 4. AI Summary Strategy
+```typescript
+const { object } = await generateObject({
+  model: google('gemini-2.5-flash'),
+  schema: z.object({
+    scores: z.array(z.object({
+      article_id: z.number(),
+      info_density: z.number().min(0).max(100),
+      popularity: z.number().min(0).max(100),
+      practicality: z.number().min(0).max(100),
+    }))
+  }),
+  prompt: `You are a tech article quality reviewer.
+Rate each article on three dimensions (0-100):
+1. info_density: substantial technical insights or new knowledge, not fluff
+2. popularity: hot topic in the community or influential in the industry
+3. practicality: directly applicable to real-world work
 
-### Prompt Structure
-
-One Gemini call per user per day:
-
-```
-你是一个 RSS 新闻摘要助手。请根据以下 RSS 文章生成一份中文每日摘要报告。
-
-要求：
-- 按 RSS 源分 section，每个 section 标注源名称
-- 每个 section 列出关键文章标题和一句话摘要
-- 最后生成一段整体总结，概括今天的主要趋势和亮点
-- 使用 Markdown 格式
-- 如果某个源昨天没有新文章，跳过该 section
-
----
-## 源: {feed.title}
-{articles: title + summary + link}
-
-## 源: {feed.title}
-...
+Articles:
+${articlesJson}`
+})
 ```
 
-### Output Format (stored in `daily_digests.content`)
+### Summary Prompt (per article, generateObject)
 
-```markdown
-# 每日 RSS 摘要 — 2026-03-16
+```typescript
+const { object } = await generateObject({
+  model: google('gemini-2.5-flash'),
+  schema: z.object({
+    summary: z.string(),
+  }),
+  prompt: `You are a tech content editor.
+Write a Chinese summary for the following article:
+- 150-200 characters
+- Highlight core insights and key information
+- Professional and concise, targeting developers
+- Output MUST be in Simplified Chinese
 
-## TechCrunch
-- **Article Title** — 一句话摘要 [链接](url)
-- ...
-
-## Hacker News
-- ...
-
----
-
-## 今日总结
-整体趋势概括...
+Title: ${article.title}
+Content: ${article.content}`
+})
 ```
 
-### Edge Cases
+## Frontend Design
 
-- All feeds have no new articles yesterday → skip digest generation, no push
-- Single feed has too many articles → cap at 20 most recent to stay within token limits
-- AI call fails → log error, skip user, do not affect others
+### Home Page `/` (Today's Digest)
 
----
+- Header: brand name "ROVER" + current date
+- Single-column card list, one card per article
+- Card content: rank + source name + title + Chinese summary + total score badge
+- Hover on card: total score badge expands to show three dimension scores (info density / popularity / practicality)
+- Click card to open original article
+- Single primary color scheme (follows project OKLch theme), depth through shade variations
 
-## 5. Frontend Pages
+### History Page `/digests` (Infinite Scroll)
 
-### Login `/login`
-- Centered card: "Rover" title + "Sign in with Google" button
+- Grouped by date, each group is one day's digest
+- Cursor-based pagination (cursor=date), auto-load on scroll to bottom
+- Same card structure as home page
 
-### Today's Digest `/` (home)
-- Date header
-- If digest exists → render Markdown content
-- If not → "No digest today" with prompt to add feeds
+### Admin Panel `/admin`
 
-### Feed Management `/feeds`
-- Top: URL input + "Add" button (validates on submit)
-- List: feed name, URL, active/inactive toggle, last fetched time, delete button
+- Feed list table: name, URL, status toggle, delete button
+- Add feed: URL input → validate API → auto-parse title → confirm add
+- Functional and clean, shadcn/ui components
 
-### History `/history`
-- Date-descending list, each row shows date + preview
-- Click to view full digest
-- Cursor-based pagination for loading more
+### Responsive Design
 
-### Settings `/settings`
-- Telegram binding: unbound → show binding instructions + token; bound → show chat ID + unbind button
+- Mobile-first, single column layout scales naturally
+- Cards stack vertically on all viewports
+- Admin panel usable on mobile but optimized for desktop
 
-### Navigation
-- Simple sidebar or top nav: Home, Feeds, History, Settings, Sign out
+## Environment Variables
 
----
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Gemini API key |
+| `CRON_SECRET` | Cron API authentication |
+| `ADMIN_PASSWORD` | Admin panel login password |
 
-## 6. Environment Variables
+## Dependencies
 
-```
-DATABASE_URL=postgresql://...
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-GOOGLE_GENERATIVE_AI_API_KEY=your-key
-CRON_SECRET=your-cron-secret
-TELEGRAM_BOT_TOKEN=your-bot-token
-```
+### Existing (keep)
 
----
-
-## 7. Key Dependencies
-
-Existing:
 - `next`, `react`, `react-dom`
 - `drizzle-orm`, `postgres`, `drizzle-kit`
-- `@supabase/supabase-js`
 - `ai`, `@ai-sdk/google`
 - `swr`
 - `tailwindcss`, `shadcn`, `lucide-react`
 
-To add:
-- `@supabase/ssr` — server-side Supabase auth helpers for Next.js
-- RSS parser library (e.g., `rss-parser` or manual XML parsing)
-- `react-markdown` + `remark-gfm` — render digest Markdown in the browser
+### To Add
+
+| Package | Purpose |
+|---------|---------|
+| `zod` | Schema validation for generateObject |
+| `rss-parser` | RSS feed parsing |
+
+### To Remove
+
+| Package | Reason |
+|---------|--------|
+| `@supabase/supabase-js` | No longer needed without Supabase Auth |
