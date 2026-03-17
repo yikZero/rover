@@ -33,5 +33,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Superpowers brainstorming artifacts
+# Superpowers
 .superpowers/
+.agents/
+skills-lock.json
