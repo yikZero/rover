@@ -1,4 +1,5 @@
-import { desc, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
+import { notFound } from 'next/navigation'
 import type { DigestArticle } from '@/components/digest-card'
 import { DigestCard } from '@/components/digest-card'
 import { db } from '@/lib/db'
@@ -10,14 +11,20 @@ import {
   scores,
 } from '@/lib/schema'
 
-async function getLatestDigest() {
+export default async function DigestDatePage({
+  params,
+}: {
+  params: Promise<{ date: string }>
+}) {
+  const { date } = await params
+
   const [digest] = await db
     .select()
     .from(dailyDigests)
-    .orderBy(desc(dailyDigests.date))
+    .where(eq(dailyDigests.date, date))
     .limit(1)
 
-  if (!digest) return null
+  if (!digest) notFound()
 
   const items = await db
     .select({
@@ -38,35 +45,13 @@ async function getLatestDigest() {
     .where(eq(digestArticles.digestId, digest.id))
     .orderBy(digestArticles.rank)
 
-  return { date: digest.date, articles: items as DigestArticle[] }
-}
-
-export default async function HomePage() {
-  const digest = await getLatestDigest()
-
-  if (!digest) {
-    return (
-      <div className="py-20 text-center text-muted-foreground">
-        <p className="text-lg">暂无精选内容</p>
-        <p className="mt-2 text-sm">每日精选将在北京时间 09:00 自动生成</p>
-      </div>
-    )
-  }
-
-  const today = new Date().toISOString().split('T')[0]
-  const isToday = digest.date === today
-
   return (
     <div>
       <div className="mb-6">
-        <p className="text-muted-foreground text-sm">
-          {isToday ? '今日精选' : `${digest.date} 精选`}
-          {!isToday && ' (今日精选尚未生成)'}
-        </p>
-        <p className="text-muted-foreground text-xs">{digest.date}</p>
+        <p className="text-muted-foreground text-sm">{date} 精选</p>
       </div>
       <div className="space-y-3">
-        {digest.articles.map((article) => (
+        {(items as DigestArticle[]).map((article) => (
           <DigestCard key={article.url} article={article} />
         ))}
       </div>
