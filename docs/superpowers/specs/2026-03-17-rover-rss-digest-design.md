@@ -5,7 +5,7 @@
 
 ## Overview
 
-Rover is a public-facing daily tech digest platform. An automated pipeline fetches articles from curated RSS feeds, scores them with AI across multiple dimensions, and publishes a daily top 5-10 selection with Chinese summaries. All visitors can browse current and historical digests without login. Only the site owner can manage RSS feeds via a password-protected admin panel.
+Rover is a public-facing daily tech digest platform. An automated pipeline fetches articles from curated RSS feeds, scores them with AI across multiple dimensions, and publishes a daily top 10 selection (minimum 5, only articles scoring >= 50) with Chinese summaries. All visitors can browse current and historical digests without login. Only the site owner can manage RSS feeds via a password-protected admin panel.
 
 ## Architecture
 
@@ -36,7 +36,7 @@ All tables use `bigint generated always as identity` primary keys per Postgres b
 | is_active | boolean DEFAULT true | Enable/disable toggle |
 | created_at | timestamptz DEFAULT now() | |
 
-- Partial index: `ON (id) WHERE is_active = true`
+- No partial index needed (table will be very small, tens of rows)
 - Not publicly accessible (admin only)
 
 ### articles
@@ -68,7 +68,7 @@ All tables use `bigint generated always as identity` primary keys per Postgres b
 
 - Index: `ON (article_id)` — FK index
 - Index: `ON (total DESC)` — sort by score
-- Weighted formula (computed server-side): `total = info_density * 0.4 + popularity * 0.3 + practicality * 0.3`
+- Weighted formula (computed server-side): `total = Math.round(info_density * 0.4 + popularity * 0.3 + practicality * 0.3)`
 
 ### daily_digests
 
@@ -84,8 +84,8 @@ All tables use `bigint generated always as identity` primary keys per Postgres b
 
 | Column | Type | Notes |
 |--------|------|-------|
-| digest_id | bigint FK → daily_digests | |
-| article_id | bigint FK → articles | |
+| digest_id | bigint FK → daily_digests NOT NULL | |
+| article_id | bigint FK → articles NOT NULL | |
 | rank | smallint NOT NULL | Display order |
 | summary | text NOT NULL | AI-generated Chinese summary |
 | PK | (digest_id, article_id) | Composite primary key |
@@ -113,32 +113,41 @@ All tables use `bigint generated always as identity` primary keys per Postgres b
 
 ### API Routes
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/api/digests` | GET | Paginated digest list (cursor=date) |
-| `/api/digests/[date]` | GET | Single day's digest with articles |
-| `/api/cron/daily` | POST | Cron trigger: fetch → score → summarize |
-| `/api/feeds/validate` | POST | Validate RSS URL (admin only) |
+| Route | Method | Auth | Description |
+|-------|--------|------|-------------|
+| `/api/digests` | GET | Public | Paginated digest list (cursor=date) |
+| `/api/digests/[date]` | GET | Public | Single day's digest with articles |
+| `/api/cron/daily` | POST | CRON_SECRET | Cron trigger: fetch → score → summarize |
+| `/api/auth/login` | POST | Public | Validate password, set session cookie |
+| `/api/auth/logout` | POST | Admin | Clear session cookie |
+| `/api/feeds` | GET | Admin | List all feeds |
+| `/api/feeds` | POST | Admin | Create a new feed |
+| `/api/feeds/[id]` | PATCH | Admin | Toggle is_active |
+| `/api/feeds/[id]` | DELETE | Admin | Delete a feed |
+| `/api/feeds/validate` | POST | Admin | Validate RSS URL |
 
 ## Admin Authentication
 
 Simple password protection, suitable for single-owner usage.
 
 - Environment variable `ADMIN_PASSWORD` stores the password
-- `/admin/login` page: input password → POST to login API
-- On success: set httpOnly signed cookie with session token
-- `proxy.ts` intercepts `/admin/*` routes, checks cookie, redirects to `/admin/login` if invalid
+- `POST /api/auth/login`: validate password, generate HMAC-SHA256 token from `ADMIN_PASSWORD + timestamp`, set as httpOnly cookie (7-day TTL)
+- `POST /api/auth/logout`: clear session cookie
+- `proxy.ts` intercepts `/admin/*` routes, verifies cookie by re-computing HMAC and checking timestamp within TTL
+- Invalid or expired cookie → redirect to `/admin/login`
 - Can be upgraded to OAuth later without structural changes
 
 ### proxy.ts
 
 ```typescript
-export default async function proxy(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
 
   if (path.startsWith('/admin') && path !== '/admin/login') {
-    // Check httpOnly session cookie
-    // Invalid or missing → redirect to /admin/login
+    const token = req.cookies.get('admin_session')?.value
+    if (!token || !verifyAdminToken(token)) {
+      return NextResponse.redirect(new URL('/admin/login', req.nextUrl))
+    }
   }
 
   return NextResponse.next()
@@ -171,9 +180,10 @@ Triggered daily at UTC 01:00 (Beijing 09:00) via `POST /api/cron/daily` with `Au
 ### Step 3 — Generate Digest
 
 - Check if `daily_digests` already has today's date (idempotency)
-- Select top 10 articles by `total` score from today's scored articles
+- Select articles scoring >= 50, take top 10 (minimum 5 required; if fewer than 5 qualify, skip digest generation for the day)
 - For each, call Gemini to generate a 150-200 character Chinese summary via `generateObject`
 - Create `daily_digests` row + `digest_articles` rows with rank and summary
+- If zero new articles were fetched in Step 1, skip digest generation entirely
 
 ### Estimated Execution Time
 
@@ -234,6 +244,8 @@ Content: ${article.content}`
 
 ### Home Page `/` (Today's Digest)
 
+`/` is a standalone page (not a rewrite to `/digests/[date]`). If today's digest hasn't been generated yet (cron hasn't run), show yesterday's digest with a note. If no digest exists at all, show an empty state.
+
 - Header: brand name "ROVER" + current date
 - Single-column card list, one card per article
 - Card content: rank + source name + title + Chinese summary + total score badge
@@ -258,6 +270,14 @@ Content: ${article.content}`
 - Mobile-first, single column layout scales naturally
 - Cards stack vertically on all viewports
 - Admin panel usable on mobile but optimized for desktop
+
+## Observability
+
+- Cron pipeline logs to stdout (captured by Vercel function logs)
+- Each cron run logs: feeds fetched, articles found, articles scored, digest generated or skipped
+- Feed fetch failures logged with feed URL and error message
+- AI failures logged with article ID and error
+- Admin can check Vercel dashboard for function invocation history and logs
 
 ## Environment Variables
 
