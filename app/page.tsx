@@ -32,7 +32,7 @@ export default async function HomePage() {
           </div>
         </div>
         <p className="mt-8 text-md text-muted-foreground">
-          每日精选将在北京时间 09:00 自动生成
+          每日精选将在北京时间 10:00 自动生成
         </p>
       </div>
     )
