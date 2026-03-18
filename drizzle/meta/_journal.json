@@ -8,6 +8,13 @@
       "when": 1773825715780,
       "tag": "0000_rewrite-schema",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773843933928,
+      "tag": "0001_brief_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@ import {
   bigint,
   boolean,
   check,
+  customType,
   date,
   index,
   numeric,
@@ -12,6 +13,18 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
+
+const vector = customType<{ data: number[]; driverData: string }>({
+  dataType(config) {
+    return `vector(${(config as { dimensions?: number })?.dimensions ?? 768})`
+  },
+  fromDriver(value: string): number[] {
+    return value.slice(1, -1).split(',').map(Number)
+  },
+  toDriver(value: number[]): string {
+    return `[${value.join(',')}]`
+  },
+})
 
 export const feeds = pgTable(
   'feeds',
@@ -147,6 +160,16 @@ export const digestArticles = pgTable(
     index('digest_articles_article_id_idx').on(table.articleId),
   ],
 )
+
+export const articleEmbeddings = pgTable('article_embeddings', {
+  articleId: bigint('article_id', { mode: 'number' })
+    .primaryKey()
+    .references(() => articles.id, { onDelete: 'cascade' }),
+  embedding: vector({ dimensions: 768 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
 
 export const telegramLogs = pgTable(
   'telegram_logs',
