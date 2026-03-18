@@ -36,9 +36,6 @@ export default async function DigestDatePage({
       url: articles.url,
       feedTitle: feeds.title,
       total: scores.total,
-      infoDensity: scores.infoDensity,
-      popularity: scores.popularity,
-      practicality: scores.practicality,
     })
     .from(digestArticles)
     .innerJoin(articles, eq(digestArticles.articleId, articles.id))

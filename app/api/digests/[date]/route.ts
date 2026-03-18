@@ -36,9 +36,6 @@ export async function GET(
       feedTitle: feeds.title,
       feedSiteUrl: feeds.siteUrl,
       total: scores.total,
-      infoDensity: scores.infoDensity,
-      popularity: scores.popularity,
-      practicality: scores.practicality,
     })
     .from(digestArticles)
     .innerJoin(articles, eq(digestArticles.articleId, articles.id))

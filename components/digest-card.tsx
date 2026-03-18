@@ -8,10 +8,7 @@ export interface DigestArticle {
   url: string
   summary: string
   feedTitle: string
-  total: number
-  infoDensity: number
-  popularity: number
-  practicality: number
+  total: string
 }
 
 export function DigestCardSkeleton() {
@@ -59,13 +56,7 @@ export function DigestCard({ article }: { article: DigestArticle }) {
           </div>
         </div>
         <div className="flex items-center gap-6 max-md:justify-between">
-          <ScoreBadge
-            rank={article.rank}
-            total={article.total}
-            infoDensity={article.infoDensity}
-            popularity={article.popularity}
-            practicality={article.practicality}
-          />
+          <ScoreBadge rank={article.rank} total={article.total} />
           <a
             href={article.url}
             target="_blank"
