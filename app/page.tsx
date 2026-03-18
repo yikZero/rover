@@ -1,79 +1,15 @@
 export const revalidate = 3600
 
-import { count, desc, eq, gte } from 'drizzle-orm'
 import { ChevronRight, Play, Rss } from 'lucide-react'
 import Link from 'next/link'
-import type { DigestArticle } from '@/components/digest-card'
 import { DigestCard } from '@/components/digest-card'
-import { db } from '@/lib/db'
-import {
-  articles,
-  dailyDigests,
-  digestArticles,
-  feeds,
-  scores,
-} from '@/lib/schema'
-
-async function getLatestDigest() {
-  const [digest] = await db
-    .select()
-    .from(dailyDigests)
-    .orderBy(desc(dailyDigests.date))
-    .limit(1)
-
-  if (!digest) return null
-
-  const items = await db
-    .select({
-      rank: digestArticles.rank,
-      summary: digestArticles.summary,
-      title: articles.title,
-      url: articles.url,
-      feedTitle: feeds.title,
-      total: scores.total,
-    })
-    .from(digestArticles)
-    .innerJoin(articles, eq(digestArticles.articleId, articles.id))
-    .innerJoin(feeds, eq(articles.feedId, feeds.id))
-    .innerJoin(scores, eq(articles.id, scores.articleId))
-    .where(eq(digestArticles.digestId, digest.id))
-    .orderBy(digestArticles.rank)
-
-  const digestDate = new Date(`${digest.date}T00:00:00`)
-  const dayBefore = new Date(digestDate)
-  dayBefore.setDate(dayBefore.getDate() - 1)
-
-  const [{ total: totalFetched }] = await db
-    .select({ total: count() })
-    .from(articles)
-    .where(gte(articles.createdAt, dayBefore))
-
-  const [{ total: totalScored }] = await db
-    .select({ total: count() })
-    .from(scores)
-    .innerJoin(articles, eq(scores.articleId, articles.id))
-    .where(gte(articles.createdAt, dayBefore))
-
-  return {
-    date: digest.date,
-    articles: items as DigestArticle[],
-    stats: {
-      fetched: totalFetched,
-      scored: totalScored,
-      selected: items.length,
-    },
-  }
-}
+import { getActiveFeeds, getLatestDigest } from '@/lib/queries'
 
 export default async function HomePage() {
   const digest = await getLatestDigest()
 
   if (!digest) {
-    const topFeeds = await db
-      .select({ title: feeds.title })
-      .from(feeds)
-      .where(eq(feeds.isActive, true))
-      .limit(5)
+    const topFeeds = await getActiveFeeds()
 
     return (
       <div className="flex flex-col items-center justify-center py-20">
