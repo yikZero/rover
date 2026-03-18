@@ -40,22 +40,23 @@ export const getLatestDigest = unstable_cache(
 
     if (!digest) return null
 
-    const items = await digestArticlesQuery(digest.id)
-
     const digestDate = new Date(`${digest.date}T00:00:00`)
     const dayBefore = new Date(digestDate)
     dayBefore.setDate(dayBefore.getDate() - 1)
 
-    const [{ total: totalFetched }] = await db
-      .select({ total: count() })
-      .from(articles)
-      .where(gte(articles.createdAt, dayBefore))
-
-    const [{ total: totalScored }] = await db
-      .select({ total: count() })
-      .from(scores)
-      .innerJoin(articles, eq(scores.articleId, articles.id))
-      .where(gte(articles.createdAt, dayBefore))
+    const [items, [{ total: totalFetched }], [{ total: totalScored }]] =
+      await Promise.all([
+        digestArticlesQuery(digest.id),
+        db
+          .select({ total: count() })
+          .from(articles)
+          .where(gte(articles.createdAt, dayBefore)),
+        db
+          .select({ total: count() })
+          .from(scores)
+          .innerJoin(articles, eq(scores.articleId, articles.id))
+          .where(gte(articles.createdAt, dayBefore)),
+      ])
 
     return {
       date: digest.date,
@@ -71,51 +72,57 @@ export const getLatestDigest = unstable_cache(
   { revalidate: 3600, tags: ['digest'] },
 )
 
-export const getDigestByDate = unstable_cache(
-  async (date: string) => {
-    const [digest] = await db
-      .select()
-      .from(dailyDigests)
-      .where(eq(dailyDigests.date, date))
-      .limit(1)
+export async function getDigestByDate(date: string) {
+  return unstable_cache(
+    async () => {
+      const [digest] = await db
+        .select()
+        .from(dailyDigests)
+        .where(eq(dailyDigests.date, date))
+        .limit(1)
 
-    if (!digest) return null
+      if (!digest) return null
 
-    const items = await digestArticlesQuery(digest.id)
-    return { date: digest.date, articles: items as DigestArticle[] }
-  },
-  ['digest-by-date'],
-  { revalidate: 86400, tags: ['digest'] },
-)
+      const items = await digestArticlesQuery(digest.id)
+      return { date: digest.date, articles: items as DigestArticle[] }
+    },
+    [`digest-by-date-${date}`],
+    { revalidate: 86400, tags: ['digest'] },
+  )()
+}
 
-export const getDigestList = unstable_cache(
-  async (cursor?: string) => {
-    const limit = 10
-    const conditions = cursor ? lt(dailyDigests.date, cursor) : undefined
+export async function getDigestList(cursor?: string) {
+  const cacheKey = cursor ? `digest-list-${cursor}` : 'digest-list'
 
-    const digests = await db
-      .select()
-      .from(dailyDigests)
-      .where(conditions)
-      .orderBy(desc(dailyDigests.date))
-      .limit(limit + 1)
+  return unstable_cache(
+    async () => {
+      const limit = 10
+      const conditions = cursor ? lt(dailyDigests.date, cursor) : undefined
 
-    const hasMore = digests.length > limit
-    const results = hasMore ? digests.slice(0, limit) : digests
-    const nextCursor = hasMore ? results[results.length - 1].date : null
+      const digests = await db
+        .select()
+        .from(dailyDigests)
+        .where(conditions)
+        .orderBy(desc(dailyDigests.date))
+        .limit(limit + 1)
 
-    const digestsWithArticles = await Promise.all(
-      results.map(async (digest) => {
-        const items = await digestArticlesQuery(digest.id)
-        return { ...digest, articles: items as DigestArticle[] }
-      }),
-    )
+      const hasMore = digests.length > limit
+      const results = hasMore ? digests.slice(0, limit) : digests
+      const nextCursor = hasMore ? results[results.length - 1].date : null
 
-    return { digests: digestsWithArticles, nextCursor }
-  },
-  ['digest-list'],
-  { revalidate: 3600, tags: ['digest'] },
-)
+      const digestsWithArticles = await Promise.all(
+        results.map(async (digest) => {
+          const items = await digestArticlesQuery(digest.id)
+          return { ...digest, articles: items as DigestArticle[] }
+        }),
+      )
+
+      return { digests: digestsWithArticles, nextCursor }
+    },
+    [cacheKey],
+    { revalidate: 3600, tags: ['digest'] },
+  )()
+}
 
 export const getActiveFeeds = unstable_cache(
   async () => {

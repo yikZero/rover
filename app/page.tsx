@@ -1,5 +1,3 @@
-export const revalidate = 3600
-
 import { ChevronRight, Play, Rss } from 'lucide-react'
 import Link from 'next/link'
 import { DigestCard } from '@/components/digest-card'

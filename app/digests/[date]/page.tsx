@@ -1,5 +1,3 @@
-export const revalidate = 3600
-
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
