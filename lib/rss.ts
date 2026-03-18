@@ -17,6 +17,22 @@ export interface ParsedItem {
   publishedAt: Date | undefined
 }
 
+function cleanTitle(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+      String.fromCodePoint(Number.parseInt(hex, 16)),
+    )
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/[★☆✦✧]/g, '')
+    .replace(/⭐︎/g, '')
+    .trim()
+}
+
 export async function parseFeed(url: string): Promise<ParsedFeed> {
   const feed = await parser.parseURL(url)
 
@@ -26,7 +42,7 @@ export async function parseFeed(url: string): Promise<ParsedFeed> {
     items: (feed.items ?? [])
       .filter((item) => item.link)
       .map((item) => ({
-        title: item.title ?? 'Untitled',
+        title: cleanTitle(item.title ?? 'Untitled'),
         url: item.link as string,
         content: item.contentSnippet ?? item.content ?? '',
         publishedAt: item.isoDate ? new Date(item.isoDate) : undefined,

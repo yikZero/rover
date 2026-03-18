@@ -1,10 +1,12 @@
 'use client'
 
+import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import useSWRInfinite from 'swr/infinite'
 import type { DigestArticle } from '@/components/digest-card'
-import { DigestCard } from '@/components/digest-card'
+import { DigestCard, DigestCardSkeleton } from '@/components/digest-card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { fetcher } from '@/lib/fetcher'
 
 interface DigestWithArticles {
@@ -55,18 +57,44 @@ export default function DigestsPage() {
   }, [hasMore, isValidating, setSize])
 
   return (
-    <div>
-      <h1 className="mb-6 font-semibold text-lg">历史精选</h1>
-      <div className="space-y-10">
+    <section>
+      <Link href="/" className="group flex items-center gap-2">
+        <ChevronLeft className="size-5 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
+        <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
+          Digest{' '}
+          <strong className="font-semibold text-foreground">History</strong>
+        </h2>
+      </Link>
+      <div className="mt-12 space-y-14 md:mt-16">
+        {!data && (
+          <>
+            <section>
+              <Skeleton className="h-4 w-24" />
+              <div className="mt-2">
+                <DigestCardSkeleton />
+                <DigestCardSkeleton />
+                <DigestCardSkeleton />
+              </div>
+            </section>
+            <section>
+              <Skeleton className="h-4 w-24" />
+              <div className="mt-2">
+                <DigestCardSkeleton />
+                <DigestCardSkeleton />
+                <DigestCardSkeleton />
+              </div>
+            </section>
+          </>
+        )}
         {allDigests.map((digest) => (
           <section key={digest.date}>
             <Link
               href={`/digests/${digest.date}`}
-              className="mb-3 block font-medium text-muted-foreground text-sm hover:text-foreground"
+              className="inline-block font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
             >
               {digest.date}
             </Link>
-            <div className="space-y-3">
+            <div className="mt-2">
               {digest.articles.map((article) => (
                 <DigestCard key={article.url} article={article} />
               ))}
@@ -80,6 +108,6 @@ export default function DigestsPage() {
       >
         {isValidating ? '加载中...' : hasMore ? '' : '没有更多了'}
       </div>
-    </div>
+    </section>
   )
 }

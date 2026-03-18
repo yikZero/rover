@@ -18,7 +18,6 @@ export async function POST(request: Request) {
   }
 
   const today = new Date().toISOString().split('T')[0]
-  console.log(`[cron] Starting daily digest for ${today}`)
 
   const existing = await db
     .select()
@@ -27,7 +26,6 @@ export async function POST(request: Request) {
     .limit(1)
 
   if (existing.length > 0) {
-    console.log('[cron] Digest already exists for today, skipping')
     return NextResponse.json({ message: 'Digest already exists' })
   }
 
@@ -37,8 +35,6 @@ export async function POST(request: Request) {
     .from(feeds)
     .where(eq(feeds.isActive, true))
 
-  console.log(`[cron] Found ${activeFeeds.length} active feeds`)
-
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   let totalNewArticles = 0
@@ -46,9 +42,10 @@ export async function POST(request: Request) {
   for (const feed of activeFeeds) {
     try {
       const parsed = await parseFeed(feed.url)
-      const recentItems = parsed.items.filter(
-        (item) => !item.publishedAt || item.publishedAt >= yesterday,
-      )
+      const hasDate = parsed.items.some((item) => item.publishedAt)
+      const recentItems = parsed.items
+        .filter((item) => !item.publishedAt || item.publishedAt >= yesterday)
+        .slice(0, hasDate ? 50 : 5)
 
       for (const item of recentItems) {
         try {
@@ -68,15 +65,10 @@ export async function POST(request: Request) {
           // Insert error — skip
         }
       }
-    } catch (e) {
-      console.error(`[cron] Failed to fetch feed: ${feed.url}`, e)
-    }
+    } catch (_e) {}
   }
 
-  console.log(`[cron] Fetched ${totalNewArticles} new articles`)
-
   if (totalNewArticles === 0) {
-    console.log('[cron] No new articles, skipping digest')
     return NextResponse.json({ message: 'No new articles' })
   }
 
@@ -90,8 +82,6 @@ export async function POST(request: Request) {
     .from(articles)
     .leftJoin(scores, eq(articles.id, scores.articleId))
     .where(and(isNull(scores.id), gte(articles.createdAt, yesterday)))
-
-  console.log(`[cron] Scoring ${unscoredArticles.length} articles`)
 
   for (let i = 0; i < unscoredArticles.length; i += 20) {
     const batch = unscoredArticles.slice(i, i + 20)
@@ -125,12 +115,7 @@ export async function POST(request: Request) {
             })
             .onConflictDoNothing({ target: scores.articleId })
         }
-      } catch (retryError) {
-        console.error(
-          '[cron] AI scoring retry failed, skipping batch',
-          retryError,
-        )
-      }
+      } catch (_retryError) {}
     }
   }
 
@@ -155,13 +140,8 @@ export async function POST(request: Request) {
     .limit(10)
 
   if (topArticles.length < 5) {
-    console.log(
-      `[cron] Only ${topArticles.length} articles scored >= 50, skipping digest`,
-    )
     return NextResponse.json({ message: 'Not enough quality articles' })
   }
-
-  console.log(`[cron] Generating summaries for ${topArticles.length} articles`)
 
   const [digest] = await db
     .insert(dailyDigests)
@@ -181,15 +161,8 @@ export async function POST(request: Request) {
         rank: i + 1,
         summary,
       })
-    } catch (e) {
-      console.error(
-        `[cron] Summary generation failed for article ${article.id}`,
-        e,
-      )
-    }
+    } catch (_e) {}
   }
-
-  console.log(`[cron] Daily digest generated successfully for ${today}`)
 
   return NextResponse.json({
     message: 'Digest generated',

@@ -1,4 +1,6 @@
 import { eq } from 'drizzle-orm'
+import { ChevronLeft } from 'lucide-react'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { DigestArticle } from '@/components/digest-card'
 import { DigestCard } from '@/components/digest-card'
@@ -46,15 +48,19 @@ export default async function DigestDatePage({
     .orderBy(digestArticles.rank)
 
   return (
-    <div>
-      <div className="mb-6">
-        <p className="text-muted-foreground text-sm">{date} 精选</p>
-      </div>
-      <div className="space-y-3">
+    <section>
+      <Link href="/digests" className="group flex items-center gap-2">
+        <ChevronLeft className="size-5 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
+        <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
+          {date}{' '}
+          <strong className="font-semibold text-foreground">Digest</strong>
+        </h2>
+      </Link>
+      <div className="mt-12 md:mt-16">
         {(items as DigestArticle[]).map((article) => (
           <DigestCard key={article.url} article={article} />
         ))}
       </div>
-    </div>
+    </section>
   )
 }

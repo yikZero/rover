@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ScoreBadgeProps {
+  rank: number
   total: number
   infoDensity: number
   popularity: number
@@ -11,12 +12,14 @@ interface ScoreBadgeProps {
 }
 
 export function ScoreBadge({
+  rank,
   total,
   infoDensity,
   popularity,
   practicality,
 }: ScoreBadgeProps) {
   const [expanded, setExpanded] = useState(false)
+  const isTop = rank <= 3
 
   return (
     <div
@@ -27,7 +30,10 @@ export function ScoreBadge({
     >
       <div
         className={cn(
-          'inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 font-semibold text-primary-foreground text-xs transition-colors',
+          'inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold text-xs transition-colors',
+          isTop
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted text-muted-foreground',
         )}
       >
         {total}
