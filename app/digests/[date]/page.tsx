@@ -16,13 +16,21 @@ export default async function DigestDatePage({
 
   return (
     <section>
-      <Link href="/digests" className="group flex items-center gap-2">
-        <ChevronLeft className="size-5 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
-        <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
-          {date}{' '}
-          <strong className="font-semibold text-foreground">Digest</strong>
-        </h2>
-      </Link>
+      <div>
+        <Link href="/digests" className="group flex items-center gap-2">
+          <ChevronLeft
+            strokeWidth={2.5}
+            className="size-6 text-muted-foreground transition-transform group-hover:-translate-x-0.5"
+          />
+          <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
+            {date}{' '}
+            <strong className="font-semibold text-foreground">Digest</strong>
+          </h2>
+        </Link>
+        <p className="mt-2 font-normal text-muted-foreground/60 text-sm">
+          评分 {digest.stats.scored} 篇 · 精选 {digest.stats.selected} 篇
+        </p>
+      </div>
       <div className="mt-12 md:mt-16">
         {digest.articles.map((article) => (
           <DigestCard key={article.url} article={article} />

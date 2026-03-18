@@ -44,7 +44,11 @@ export default async function HomePage() {
     )
   }
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date(
+    new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }),
+  )
+    .toISOString()
+    .split('T')[0]
   const isToday = digest.date === today
 
   return (

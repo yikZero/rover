@@ -1,4 +1,4 @@
-import { count, desc, eq, gte, lt } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lt } from 'drizzle-orm'
 import { unstable_cache } from 'next/cache'
 import type { DigestArticle } from '@/components/digest-card'
 import { db } from '@/lib/db'
@@ -83,8 +83,37 @@ export async function getDigestByDate(date: string) {
 
       if (!digest) return null
 
-      const items = await digestArticlesQuery(digest.id)
-      return { date: digest.date, articles: items as DigestArticle[] }
+      const digestDate = new Date(`${date}T00:00:00`)
+      const dayBefore = new Date(digestDate)
+      dayBefore.setDate(dayBefore.getDate() - 1)
+      const nextDay = new Date(digestDate)
+      nextDay.setDate(nextDay.getDate() + 1)
+
+      const dateRange = and(
+        gte(articles.createdAt, dayBefore),
+        lt(articles.createdAt, nextDay),
+      )
+
+      const [items, [{ total: totalFetched }], [{ total: totalScored }]] =
+        await Promise.all([
+          digestArticlesQuery(digest.id),
+          db.select({ total: count() }).from(articles).where(dateRange),
+          db
+            .select({ total: count() })
+            .from(scores)
+            .innerJoin(articles, eq(scores.articleId, articles.id))
+            .where(dateRange),
+        ])
+
+      return {
+        date: digest.date,
+        articles: items as DigestArticle[],
+        stats: {
+          fetched: totalFetched,
+          scored: totalScored,
+          selected: items.length,
+        },
+      }
     },
     [`digest-by-date-${date}`],
     { revalidate: 86400, tags: ['digest'] },

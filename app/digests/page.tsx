@@ -59,7 +59,10 @@ export default function DigestsPage() {
   return (
     <section>
       <Link href="/" className="group flex items-center gap-2">
-        <ChevronLeft className="size-5 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
+        <ChevronLeft
+          strokeWidth={2.5}
+          className="size-6 text-muted-foreground transition-transform group-hover:-translate-x-0.5"
+        />
         <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
           Digest{' '}
           <strong className="font-semibold text-foreground">History</strong>
@@ -93,6 +96,9 @@ export default function DigestsPage() {
               className="inline-block font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
             >
               {digest.date}
+              <span className="ml-2 text-muted-foreground/50">
+                精选 {digest.articles.length} 篇
+              </span>
             </Link>
             <div className="mt-2">
               {digest.articles.map((article) => (
