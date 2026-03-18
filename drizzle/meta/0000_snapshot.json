@@ -1,5 +1,5 @@
 {
-  "id": "ccab52c9-8e54-48b3-853a-e674d30d6381",
+  "id": "7cd0dce7-ddf7-4022-a95c-2f13bf1f7bf1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -49,6 +49,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "language": {
+          "name": "language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filter_status": {
+          "name": "filter_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "cluster_id": {
+          "name": "cluster_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "published_at": {
           "name": "published_at",
           "type": "timestamp with time zone",
@@ -93,6 +112,22 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "articles_pending_score_idx": {
+          "name": "articles_pending_score_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "filter_status = 'passed'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -121,7 +156,12 @@
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "articles_filter_status_check": {
+          "name": "articles_filter_status_check",
+          "value": "\"articles\".\"filter_status\" IN ('pending', 'passed', 'filtered', 'duplicate')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.daily_digests": {
@@ -159,23 +199,7 @@
           "default": "now()"
         }
       },
-      "indexes": {
-        "daily_digests_date_idx": {
-          "name": "daily_digests_date_idx",
-          "columns": [
-            {
-              "expression": "date",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
@@ -221,21 +245,6 @@
         }
       },
       "indexes": {
-        "digest_articles_digest_id_idx": {
-          "name": "digest_articles_digest_id_idx",
-          "columns": [
-            {
-              "expression": "digest_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "digest_articles_article_id_idx": {
           "name": "digest_articles_article_id_idx",
           "columns": [
@@ -333,12 +342,37 @@
           "primaryKey": false,
           "notNull": false
         },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tags": {
+          "name": "tags",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "last_fetched_at": {
+          "name": "last_fetched_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error_count": {
+          "name": "error_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "created_at": {
           "name": "created_at",
@@ -361,7 +395,12 @@
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "feeds_type_check": {
+          "name": "feeds_type_check",
+          "value": "\"feeds\".\"type\" IN ('rss', 'twitter')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.scores": {
@@ -391,27 +430,51 @@
           "primaryKey": false,
           "notNull": true
         },
-        "info_density": {
-          "name": "info_density",
-          "type": "smallint",
+        "scale": {
+          "name": "scale",
+          "type": "numeric(3, 1)",
           "primaryKey": false,
           "notNull": true
         },
-        "popularity": {
-          "name": "popularity",
-          "type": "smallint",
+        "impact": {
+          "name": "impact",
+          "type": "numeric(3, 1)",
           "primaryKey": false,
           "notNull": true
         },
-        "practicality": {
-          "name": "practicality",
-          "type": "smallint",
+        "novelty": {
+          "name": "novelty",
+          "type": "numeric(3, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "potential": {
+          "name": "potential",
+          "type": "numeric(3, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "legacy": {
+          "name": "legacy",
+          "type": "numeric(3, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "positivity": {
+          "name": "positivity",
+          "type": "numeric(3, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "credibility": {
+          "name": "credibility",
+          "type": "numeric(3, 1)",
           "primaryKey": false,
           "notNull": true
         },
         "total": {
           "name": "total",
-          "type": "smallint",
+          "type": "numeric(3, 1)",
           "primaryKey": false,
           "notNull": true
         },
@@ -424,21 +487,6 @@
         }
       },
       "indexes": {
-        "scores_article_id_idx": {
-          "name": "scores_article_id_idx",
-          "columns": [
-            {
-              "expression": "article_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "scores_total_idx": {
           "name": "scores_total_idx",
           "columns": [
@@ -481,7 +529,130 @@
         }
       },
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "scores_scale_check": {
+          "name": "scores_scale_check",
+          "value": "\"scores\".\"scale\" >= 0 AND \"scores\".\"scale\" <= 10"
+        },
+        "scores_impact_check": {
+          "name": "scores_impact_check",
+          "value": "\"scores\".\"impact\" >= 0 AND \"scores\".\"impact\" <= 10"
+        },
+        "scores_novelty_check": {
+          "name": "scores_novelty_check",
+          "value": "\"scores\".\"novelty\" >= 0 AND \"scores\".\"novelty\" <= 10"
+        },
+        "scores_potential_check": {
+          "name": "scores_potential_check",
+          "value": "\"scores\".\"potential\" >= 0 AND \"scores\".\"potential\" <= 10"
+        },
+        "scores_legacy_check": {
+          "name": "scores_legacy_check",
+          "value": "\"scores\".\"legacy\" >= 0 AND \"scores\".\"legacy\" <= 10"
+        },
+        "scores_positivity_check": {
+          "name": "scores_positivity_check",
+          "value": "\"scores\".\"positivity\" >= 0 AND \"scores\".\"positivity\" <= 10"
+        },
+        "scores_credibility_check": {
+          "name": "scores_credibility_check",
+          "value": "\"scores\".\"credibility\" >= 0 AND \"scores\".\"credibility\" <= 10"
+        },
+        "scores_total_check": {
+          "name": "scores_total_check",
+          "value": "\"scores\".\"total\" >= 0 AND \"scores\".\"total\" <= 10"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.telegram_logs": {
+      "name": "telegram_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "telegram_logs_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "digest_id": {
+          "name": "digest_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "telegram_logs_digest_id_idx": {
+          "name": "telegram_logs_digest_id_idx",
+          "columns": [
+            {
+              "expression": "digest_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "telegram_logs_digest_id_daily_digests_id_fk": {
+          "name": "telegram_logs_digest_id_daily_digests_id_fk",
+          "tableFrom": "telegram_logs",
+          "tableTo": "daily_digests",
+          "columnsFrom": [
+            "digest_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "telegram_logs_status_check": {
+          "name": "telegram_logs_status_check",
+          "value": "\"telegram_logs\".\"status\" IN ('sent', 'failed')"
+        }
+      },
       "isRLSEnabled": false
     }
   },

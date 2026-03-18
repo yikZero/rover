@@ -1,8 +1,11 @@
+import { sql } from 'drizzle-orm'
 import {
   bigint,
   boolean,
+  check,
   date,
   index,
+  numeric,
   pgTable,
   primaryKey,
   smallint,
@@ -10,16 +13,26 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core'
 
-export const feeds = pgTable('feeds', {
-  id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
-  title: text().notNull(),
-  url: text().notNull().unique(),
-  siteUrl: text('site_url'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-})
+export const feeds = pgTable(
+  'feeds',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+    title: text().notNull(),
+    url: text().notNull().unique(),
+    siteUrl: text('site_url'),
+    type: text().notNull(),
+    tags: text().array(),
+    isActive: boolean('is_active').notNull().default(true),
+    lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }),
+    errorCount: smallint('error_count').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check('feeds_type_check', sql`${table.type} IN ('rss', 'twitter')`),
+  ],
+)
 
 export const articles = pgTable(
   'articles',
@@ -31,14 +44,24 @@ export const articles = pgTable(
     title: text().notNull(),
     url: text().notNull().unique(),
     content: text(),
+    language: text(),
+    filterStatus: text('filter_status').notNull().default('pending'),
+    clusterId: text('cluster_id'),
     publishedAt: timestamp('published_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (table) => [
+    check(
+      'articles_filter_status_check',
+      sql`${table.filterStatus} IN ('pending', 'passed', 'filtered', 'duplicate')`,
+    ),
     index('articles_feed_id_idx').on(table.feedId),
     index('articles_published_at_idx').on(table.publishedAt),
+    index('articles_pending_score_idx')
+      .on(table.createdAt)
+      .where(sql`filter_status = 'passed'`),
   ],
 )
 
@@ -50,31 +73,62 @@ export const scores = pgTable(
       .notNull()
       .unique()
       .references(() => articles.id, { onDelete: 'cascade' }),
-    infoDensity: smallint('info_density').notNull(),
-    popularity: smallint().notNull(),
-    practicality: smallint().notNull(),
-    total: smallint().notNull(),
+    scale: numeric({ precision: 3, scale: 1 }).notNull(),
+    impact: numeric({ precision: 3, scale: 1 }).notNull(),
+    novelty: numeric({ precision: 3, scale: 1 }).notNull(),
+    potential: numeric({ precision: 3, scale: 1 }).notNull(),
+    legacy: numeric({ precision: 3, scale: 1 }).notNull(),
+    positivity: numeric({ precision: 3, scale: 1 }).notNull(),
+    credibility: numeric({ precision: 3, scale: 1 }).notNull(),
+    total: numeric({ precision: 3, scale: 1 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (table) => [
-    index('scores_article_id_idx').on(table.articleId),
+    check(
+      'scores_scale_check',
+      sql`${table.scale} >= 0 AND ${table.scale} <= 10`,
+    ),
+    check(
+      'scores_impact_check',
+      sql`${table.impact} >= 0 AND ${table.impact} <= 10`,
+    ),
+    check(
+      'scores_novelty_check',
+      sql`${table.novelty} >= 0 AND ${table.novelty} <= 10`,
+    ),
+    check(
+      'scores_potential_check',
+      sql`${table.potential} >= 0 AND ${table.potential} <= 10`,
+    ),
+    check(
+      'scores_legacy_check',
+      sql`${table.legacy} >= 0 AND ${table.legacy} <= 10`,
+    ),
+    check(
+      'scores_positivity_check',
+      sql`${table.positivity} >= 0 AND ${table.positivity} <= 10`,
+    ),
+    check(
+      'scores_credibility_check',
+      sql`${table.credibility} >= 0 AND ${table.credibility} <= 10`,
+    ),
+    check(
+      'scores_total_check',
+      sql`${table.total} >= 0 AND ${table.total} <= 10`,
+    ),
     index('scores_total_idx').on(table.total),
   ],
 )
 
-export const dailyDigests = pgTable(
-  'daily_digests',
-  {
-    id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
-    date: date().notNull().unique(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [index('daily_digests_date_idx').on(table.date)],
-)
+export const dailyDigests = pgTable('daily_digests', {
+  id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+  date: date().notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+})
 
 export const digestArticles = pgTable(
   'digest_articles',
@@ -90,7 +144,26 @@ export const digestArticles = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.digestId, table.articleId] }),
-    index('digest_articles_digest_id_idx').on(table.digestId),
     index('digest_articles_article_id_idx').on(table.articleId),
+  ],
+)
+
+export const telegramLogs = pgTable(
+  'telegram_logs',
+  {
+    id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+    digestId: bigint('digest_id', { mode: 'number' })
+      .notNull()
+      .references(() => dailyDigests.id),
+    messageId: text('message_id'),
+    status: text().notNull(),
+    sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check(
+      'telegram_logs_status_check',
+      sql`${table.status} IN ('sent', 'failed')`,
+    ),
+    index('telegram_logs_digest_id_idx').on(table.digestId),
   ],
 )
