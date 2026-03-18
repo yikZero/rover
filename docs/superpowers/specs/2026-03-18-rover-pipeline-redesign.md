@@ -87,7 +87,8 @@ Cron trigger (daily 08:00 CST)
 │  Step 3: Dedup               │
 │                             │
 │  - URL dedup                │
-│  - Title similarity         │
+│  - Title trigram similarity  │
+│    (pg_trgm, threshold 0.7) │
 │  - Mark duplicates          │
 │  - (Future: event clustering│
 │    with embeddings)         │
@@ -132,13 +133,13 @@ Inspired by [newsminimalist.com](https://www.newsminimalist.com/about), adapted 
 
 | Dimension | Description (tech context) | Weight |
 |-----------|---------------------------|--------|
-| Scale | How broadly does this affect the tech industry/developers? | ~1/7 |
-| Impact | How strong is the immediate effect on workflows, tools, decisions? | ~1/7 |
-| Novelty | Is this genuinely new, or incremental/rehashed? | ~1/7 |
-| Potential | Will this still matter in a year? | ~1/7 |
-| Legacy | Could this become a historical turning point? (e.g., ChatGPT launch) | ~1/7 |
-| Positivity | Low weight (~1/20) to counterbalance negativity bias in reporting | ~1/20 |
-| Credibility | First-party source (official blog/paper) vs rumor/speculation? | remaining |
+| Scale | How broadly does this affect the tech industry/developers? | 0.16 |
+| Impact | How strong is the immediate effect on workflows, tools, decisions? | 0.16 |
+| Novelty | Is this genuinely new, or incremental/rehashed? | 0.16 |
+| Potential | Will this still matter in a year? | 0.16 |
+| Legacy | Could this become a historical turning point? (e.g., ChatGPT launch) | 0.16 |
+| Positivity | Low weight to counterbalance negativity bias in reporting | 0.05 |
+| Credibility | First-party source (official blog/paper) vs rumor/speculation? | 0.15 |
 
 **Total score:** Weighted average of all dimensions, normalized to 0-10.
 
@@ -152,6 +153,7 @@ MVP uses a single model (Gemini Flash via LiteLLM).
 - Minimum threshold: 5.0 (configurable)
 - Above threshold, take top 10
 - Multi-source coverage of the same event naturally scores higher on Scale and Credibility
+- If zero articles meet the threshold, skip digest generation for that day (no empty digests, no Telegram push)
 
 ## Data Sources
 
@@ -175,7 +177,10 @@ All sources configured in `config/feeds.yaml`, not hardcoded.
 
 ## Database Schema
 
-Uses Supabase PostgreSQL. Migrations managed by Drizzle (rover repo). Python pipeline connects via Supabase connection pooler (transaction mode).
+Uses Supabase PostgreSQL. Migrations managed by Drizzle (rover repo). Python pipeline connects via direct connection (not pooler) since it runs as a single cron job, not a high-concurrency service.
+
+### Migration strategy:
+Since the project is early-stage with minimal data, the migration is destructive: drop all existing tables and recreate with the new schema. Feed data will be re-seeded from `config/feeds.yaml` on first pipeline run. No data migration needed.
 
 ### Best practices applied:
 - `bigint generated always as identity` for all PKs
@@ -226,28 +231,25 @@ INDEX articles_pending_score_idx ON (created_at) WHERE filter_status = 'passed'
 ```sql
 id          bigint identity PK
 article_id  bigint NOT NULL UNIQUE REFERENCES articles(id) ON DELETE CASCADE
-scale       numeric(3,1) NOT NULL
-impact      numeric(3,1) NOT NULL
-novelty     numeric(3,1) NOT NULL
-potential   numeric(3,1) NOT NULL
-legacy      numeric(3,1) NOT NULL
-positivity  numeric(3,1) NOT NULL
-credibility numeric(3,1) NOT NULL
-total       numeric(3,1) NOT NULL
+scale       numeric(3,1) NOT NULL CHECK (scale >= 0 AND scale <= 10)
+impact      numeric(3,1) NOT NULL CHECK (impact >= 0 AND impact <= 10)
+novelty     numeric(3,1) NOT NULL CHECK (novelty >= 0 AND novelty <= 10)
+potential   numeric(3,1) NOT NULL CHECK (potential >= 0 AND potential <= 10)
+legacy      numeric(3,1) NOT NULL CHECK (legacy >= 0 AND legacy <= 10)
+positivity  numeric(3,1) NOT NULL CHECK (positivity >= 0 AND positivity <= 10)
+credibility numeric(3,1) NOT NULL CHECK (credibility >= 0 AND credibility <= 10)
+total       numeric(3,1) NOT NULL CHECK (total >= 0 AND total <= 10)
 created_at  timestamptz DEFAULT now()
 
--- Indexes
-INDEX scores_article_id_idx ON (article_id)
+-- article_id UNIQUE constraint already creates an implicit index
 INDEX scores_total_idx ON (total)
 ```
 
 #### `daily_digests`
 ```sql
 id          bigint identity PK
-date        date NOT NULL UNIQUE
+date        date NOT NULL UNIQUE  -- UNIQUE constraint creates implicit index
 created_at  timestamptz DEFAULT now()
-
-INDEX daily_digests_date_idx ON (date)
 ```
 
 #### `digest_articles`
@@ -256,13 +258,13 @@ digest_id   bigint NOT NULL REFERENCES daily_digests(id) ON DELETE CASCADE
 article_id  bigint NOT NULL REFERENCES articles(id) ON DELETE CASCADE
 rank        smallint NOT NULL
 summary     text NOT NULL
-PRIMARY KEY (digest_id, article_id)
+PRIMARY KEY (digest_id, article_id)  -- PK index covers digest_id as leading column
 
-INDEX digest_articles_digest_id_idx ON (digest_id)
-INDEX digest_articles_article_id_idx ON (article_id)
+INDEX digest_articles_article_id_idx ON (article_id)  -- needed: article_id is not PK leading column
 ```
 
 #### `telegram_logs`
+Logs every push attempt (including retries), not deduplicated by digest_id.
 ```sql
 id          bigint identity PK
 digest_id   bigint NOT NULL REFERENCES daily_digests(id)
@@ -330,12 +332,15 @@ twitter:
 - `app/api/cron/daily/route.ts` — pipeline handles this now
 - Any remaining feed management API routes
 - `lib/ai.ts`, `lib/rss.ts` — no longer needed in frontend
+- Env vars no longer needed: `GOOGLE_GENERATIVE_AI_API_KEY`, `CRON_SECRET`, `ADMIN_PASSWORD`
 
 **Modify:**
-- `lib/schema.ts` — rewrite to match new schema (new migration, drop old tables)
+- `lib/schema.ts` — rewrite to match new schema (destructive migration, drop old tables and recreate)
+- Drizzle schema must declare all columns including pipeline-only ones (`language`, `filter_status`, `cluster_id`) for migration completeness
 - Score display — show single total score (0-10) instead of three dimensions
 - Digest detail page — adapt to new score fields
 - Score badge component — update for 0-10 scale
+- API routes (`/api/digests`, `/api/digests/[date]`) — update queries for new score columns
 
 **Keep as-is:**
 - Page structure: home (latest digest) + `/digests` (history list) + `/digests/[date]` (detail)
@@ -370,7 +375,7 @@ Sent once daily after digest generation:
 
 ### rover-pipeline
 ```
-DATABASE_URL=postgresql://...        # Supabase connection pooler URL
+DATABASE_URL=postgresql://...        # Supabase direct connection URL (not pooler)
 LITELLM_API_BASE=http://litellm:4000 # LiteLLM proxy URL (docker network)
 LITELLM_API_KEY=sk-...               # LiteLLM proxy key
 TELEGRAM_BOT_TOKEN=...               # Telegram Bot API token
