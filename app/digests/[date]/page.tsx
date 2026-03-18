@@ -1,3 +1,5 @@
+export const revalidate = 3600
+
 import { eq } from 'drizzle-orm'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'

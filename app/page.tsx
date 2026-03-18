@@ -1,3 +1,5 @@
+export const revalidate = 3600
+
 import { count, desc, eq, gte } from 'drizzle-orm'
 import { ChevronRight, Play, Rss } from 'lucide-react'
 import Link from 'next/link'
