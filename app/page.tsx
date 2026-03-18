@@ -1,13 +1,19 @@
 import { ChevronRight, Play, Rss } from 'lucide-react'
 import Link from 'next/link'
 import { DigestCard } from '@/components/digest-card'
-import { getActiveFeeds, getLatestDigest } from '@/lib/queries'
+import { getLatestDigest } from '@/lib/queries'
 
 export default async function HomePage() {
   const digest = await getLatestDigest()
 
   if (!digest) {
-    const topFeeds = await getActiveFeeds()
+    const sourceTypes = [
+      'Tech News',
+      'Developer Blogs',
+      'Open Source',
+      'Design & UX',
+      'AI & ML',
+    ]
 
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -20,10 +26,10 @@ export default async function HomePage() {
                   <Play className="size-2 translate-y-0.5 rotate-90 fill-current opacity-50" />
                 </div>
                 <div className="flex flex-col gap-3.5 rounded-tl-lg bg-muted/50 pt-3.5 pl-4 shadow ring-1 ring-border">
-                  {topFeeds.map((feed) => (
-                    <div key={feed.title} className="flex items-center gap-2">
+                  {sourceTypes.map((type) => (
+                    <div key={type} className="flex items-center gap-2">
                       <Rss className="size-3.5 text-muted-foreground" />
-                      <span className="text-sm">{feed.title}</span>
+                      <span className="text-sm">{type}</span>
                     </div>
                   ))}
                 </div>
