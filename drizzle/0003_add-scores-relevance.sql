@@ -1,0 +1,4 @@
+-- relevance column already added by pipeline (rover-pipeline)
+-- This migration syncs the Drizzle schema with the existing database state
+-- Column was added via: ALTER TABLE scores ADD COLUMN relevance NUMERIC(3,1) NOT NULL DEFAULT 5.0
+-- Constraint was added via: ALTER TABLE scores ADD CONSTRAINT scores_relevance_check CHECK (relevance >= 0 AND relevance <= 10)

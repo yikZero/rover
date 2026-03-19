@@ -93,6 +93,7 @@ export const scores = pgTable(
     legacy: numeric({ precision: 3, scale: 1 }).notNull(),
     positivity: numeric({ precision: 3, scale: 1 }).notNull(),
     credibility: numeric({ precision: 3, scale: 1 }).notNull(),
+    relevance: numeric({ precision: 3, scale: 1 }).notNull().default('5.0'),
     total: numeric({ precision: 3, scale: 1 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
@@ -126,6 +127,10 @@ export const scores = pgTable(
     check(
       'scores_credibility_check',
       sql`${table.credibility} >= 0 AND ${table.credibility} <= 10`,
+    ),
+    check(
+      'scores_relevance_check',
+      sql`${table.relevance} >= 0 AND ${table.relevance} <= 10`,
     ),
     check(
       'scores_total_check',
