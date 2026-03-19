@@ -81,9 +81,14 @@ export default async function HomePage({
           <p className="mt-2 font-normal text-muted-foreground/60 text-sm">
             {digest.date}
             {!isToday && ` · ${t('notGenerated')}`}
-            {' · '}
-            {t('scored', { count: digest.stats.scored })} ·{' '}
-            {t('selected', { count: digest.stats.selected })}
+            {digest.stats.scored > 0 && (
+              <>
+                {' · '}
+                {t('fetched', { count: digest.stats.fetched })} ·{' '}
+                {t('scored', { count: digest.stats.scored })} ·{' '}
+                {t('selected', { count: digest.stats.selected })}
+              </>
+            )}
           </p>
         </div>
         <Link

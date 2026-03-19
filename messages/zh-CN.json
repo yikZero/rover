@@ -5,6 +5,7 @@
     "sources": "来源",
     "emptyState": "每日精选将在北京时间 10:00 自动生成",
     "notGenerated": "今日精选尚未生成",
+    "fetched": "抓取 {count} 篇",
     "scored": "评分 {count} 篇",
     "selected": "精选 {count} 篇",
     "history": "历史"
@@ -17,6 +18,7 @@
   },
   "DigestDatePage": {
     "digest": "<strong>精选</strong>",
+    "fetched": "抓取 {count} 篇",
     "scored": "评分 {count} 篇",
     "selected": "精选 {count} 篇"
   },
