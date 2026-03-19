@@ -16,7 +16,7 @@
     "noMore": "没有更多了"
   },
   "DigestDatePage": {
-    "digest": "精选",
+    "digest": "<strong>精选</strong>",
     "scored": "评分 {count} 篇",
     "selected": "精选 {count} 篇"
   },

@@ -16,7 +16,7 @@
     "noMore": "No more digests"
   },
   "DigestDatePage": {
-    "digest": "Digest",
+    "digest": "<strong>Digest</strong>",
     "scored": "Scored {count}",
     "selected": "Selected {count}"
   },

@@ -25,16 +25,23 @@ export default async function DigestDatePage({
             strokeWidth={2.5}
             className="size-6 text-muted-foreground transition-transform group-hover:-translate-x-0.5"
           />
-          <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
-            {date} {t('digest')}
+          <h2 className="text-balance font-semibold text-2xl text-muted-foreground md:text-4xl">
+            {date}{' '}
+            {t.rich('digest', {
+              strong: (chunks) => (
+                <strong className="font-semibold text-foreground">
+                  {chunks}
+                </strong>
+              ),
+            })}
           </h2>
         </Link>
-        <p className="mt-2 font-normal text-muted-foreground/60 text-sm">
+        <p className="mt-1.5 font-normal text-muted-foreground/60 text-sm">
           {t('scored', { count: digest.stats.scored })} ·{' '}
           {t('selected', { count: digest.stats.selected })}
         </p>
       </div>
-      <div className="mt-12 md:mt-16">
+      <div className="mt-8 md:mt-16">
         {digest.articles.map((article) => (
           <DigestCard key={article.url} article={article} />
         ))}
