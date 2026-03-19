@@ -116,15 +116,16 @@ export default function DigestsPage() {
           </section>
         ))}
       </div>
-      <div
-        ref={sentinelRef}
-        className="py-8 text-center text-muted-foreground text-sm"
-      >
-        {isValidating
-          ? t('loading')
-          : !hasMore && data && data.length > 1
-            ? t('noMore')
-            : ''}
+      <div ref={sentinelRef} className="py-8">
+        {isValidating && (
+          <section>
+            <Skeleton className="h-4 w-24" />
+            <div className="mt-2">
+              <DigestCardSkeleton />
+              <DigestCardSkeleton />
+            </div>
+          </section>
+        )}
       </div>
     </section>
   )
