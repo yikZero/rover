@@ -12,11 +12,13 @@ import {
 
 const digestArticleSelect = {
   rank: digestArticles.rank,
-  summary: digestArticles.summary,
-  title: articles.title,
+  titleZh: digestArticles.titleZh,
+  titleEn: digestArticles.titleEn,
+  summaryZh: digestArticles.summaryZh,
+  summaryEn: digestArticles.summaryEn,
+  finalScore: digestArticles.finalScore,
   url: articles.url,
   feedTitle: feeds.title,
-  total: scores.total,
 }
 
 function digestArticlesQuery(digestId: number) {
@@ -25,7 +27,6 @@ function digestArticlesQuery(digestId: number) {
     .from(digestArticles)
     .innerJoin(articles, eq(digestArticles.articleId, articles.id))
     .innerJoin(feeds, eq(articles.feedId, feeds.id))
-    .innerJoin(scores, eq(articles.id, scores.articleId))
     .where(eq(digestArticles.digestId, digestId))
     .orderBy(digestArticles.rank)
 }
