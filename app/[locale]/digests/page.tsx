@@ -1,12 +1,13 @@
 'use client'
 
 import { ChevronLeft } from 'lucide-react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useEffect, useRef } from 'react'
 import useSWRInfinite from 'swr/infinite'
 import type { DigestArticle } from '@/components/digest-card'
 import { DigestCard, DigestCardSkeleton } from '@/components/digest-card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Link } from '@/i18n/navigation'
 import { fetcher } from '@/lib/fetcher'
 
 interface DigestWithArticles {
@@ -21,6 +22,8 @@ interface DigestsResponse {
 }
 
 export default function DigestsPage() {
+  const t = useTranslations('DigestsPage')
+
   const getKey = (
     pageIndex: number,
     previousPageData: DigestsResponse | null,
@@ -64,8 +67,7 @@ export default function DigestsPage() {
           className="size-6 text-muted-foreground transition-transform group-hover:-translate-x-0.5"
         />
         <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
-          Digest{' '}
-          <strong className="font-semibold text-foreground">History</strong>
+          {t('digestHistory')}
         </h2>
       </Link>
       <div className="mt-12 space-y-14 md:mt-16">
@@ -97,7 +99,7 @@ export default function DigestsPage() {
             >
               {digest.date}
               <span className="ml-2 text-muted-foreground/50">
-                精选 {digest.articles.length} 篇
+                {t('selected', { count: digest.articles.length })}
               </span>
             </Link>
             <div className="mt-2">
@@ -112,7 +114,7 @@ export default function DigestsPage() {
         ref={sentinelRef}
         className="py-8 text-center text-muted-foreground text-sm"
       >
-        {isValidating ? '加载中...' : hasMore ? '' : '没有更多了'}
+        {isValidating ? t('loading') : hasMore ? '' : t('noMore')}
       </div>
     </section>
   )
