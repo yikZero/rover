@@ -33,7 +33,7 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className="antialiased">
         <NextIntlClientProvider>
-          <main className="mx-auto max-w-5xl px-6 py-12 md:py-16">
+          <main className="mx-auto max-w-5xl px-6 pt-16 pb-12 md:pt-24 md:pb-16">
             {children}
           </main>
         </NextIntlClientProvider>
