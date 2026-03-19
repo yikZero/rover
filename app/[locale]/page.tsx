@@ -1,9 +1,17 @@
 import { ChevronRight, Play, Rss } from 'lucide-react'
-import Link from 'next/link'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { DigestCard } from '@/components/digest-card'
+import { Link } from '@/i18n/navigation'
 import { getLatestDigest } from '@/lib/queries'
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('HomePage')
   const digest = await getLatestDigest()
 
   if (!digest) {
@@ -22,7 +30,7 @@ export default async function HomePage() {
             <div className="mask-radial-[100%_100%] mask-radial-at-top-left mask-radial-from-75% -rotate-4 rotate-x-5 rotate-z-6 pt-1 pl-5">
               <div className="rounded-tl-xl bg-background/75 px-2 pt-3 shadow-black/6.5 shadow-lg ring-1 ring-border">
                 <div className="mb-2 flex items-center gap-2 px-2.5 font-medium text-muted-foreground text-sm">
-                  Sources{' '}
+                  {t('sources')}{' '}
                   <Play className="size-2 translate-y-0.5 rotate-90 fill-current opacity-50" />
                 </div>
                 <div className="flex flex-col gap-3.5 rounded-tl-lg bg-muted/50 pt-3.5 pl-4 shadow ring-1 ring-border">
@@ -37,9 +45,7 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-        <p className="mt-8 text-md text-muted-foreground">
-          每日精选将在北京时间 10:00 自动生成
-        </p>
+        <p className="mt-8 text-md text-muted-foreground">{t('emptyState')}</p>
       </div>
     )
   }
@@ -56,34 +62,21 @@ export default async function HomePage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
-            {isToday ? (
-              <>
-                Today&apos;s{' '}
-                <strong className="font-semibold text-foreground">
-                  Digest
-                </strong>
-              </>
-            ) : (
-              <>
-                Latest{' '}
-                <strong className="font-semibold text-foreground">
-                  Digest
-                </strong>
-              </>
-            )}
+            {isToday ? t('todaysDigest') : t('latestDigest')}
           </h2>
           <p className="mt-2 font-normal text-muted-foreground/60 text-sm">
             {digest.date}
-            {!isToday && ' · 今日精选尚未生成'}
+            {!isToday && ` · ${t('notGenerated')}`}
             {' · '}
-            评分 {digest.stats.scored} 篇 · 精选 {digest.stats.selected} 篇
+            {t('scored', { count: digest.stats.scored })} ·{' '}
+            {t('selected', { count: digest.stats.selected })}
           </p>
         </div>
         <Link
           href="/digests"
           className="flex items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
-          History
+          {t('history')}
           <ChevronRight className="size-3.5" />
         </Link>
       </div>
