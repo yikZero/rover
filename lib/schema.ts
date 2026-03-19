@@ -6,6 +6,7 @@ import {
   customType,
   date,
   index,
+  integer,
   numeric,
   pgTable,
   primaryKey,
@@ -143,6 +144,9 @@ export const scores = pgTable(
 export const dailyDigests = pgTable('daily_digests', {
   id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   date: date().notNull().unique(),
+  totalFetched: integer('total_fetched').notNull().default(0),
+  totalScored: integer('total_scored').notNull().default(0),
+  totalSelected: smallint('total_selected').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
