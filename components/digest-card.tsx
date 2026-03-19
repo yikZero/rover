@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import { useLocale, useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 import { ScoreBadge } from '@/components/score-badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -43,7 +43,6 @@ export function DigestCardSkeleton() {
 
 export function DigestCard({ article }: { article: DigestArticle }) {
   const locale = useLocale()
-  const t = useTranslations('DigestCard')
   const title = locale === 'en' ? article.titleEn : article.titleZh
   const summary = locale === 'en' ? article.summaryEn : article.summaryZh
 
@@ -71,10 +70,9 @@ export function DigestCard({ article }: { article: DigestArticle }) {
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${t('read')} ${article.titleEn}`}
+            aria-label={article.titleEn}
             className="flex items-center gap-1 font-medium text-primary text-sm transition-colors duration-200 before:absolute before:inset-0 hover:text-foreground"
           >
-            {t('read')}
             <ChevronRight
               strokeWidth={2.5}
               aria-hidden="true"
