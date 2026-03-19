@@ -120,7 +120,11 @@ export default function DigestsPage() {
         ref={sentinelRef}
         className="py-8 text-center text-muted-foreground text-sm"
       >
-        {isValidating ? t('loading') : hasMore ? '' : t('noMore')}
+        {isValidating
+          ? t('loading')
+          : !hasMore && data && data.length > 1
+            ? t('noMore')
+            : ''}
       </div>
     </section>
   )
