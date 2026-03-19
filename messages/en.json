@@ -5,9 +5,8 @@
     "sources": "Sources",
     "emptyState": "Daily digest auto-generated at 10:00 Beijing time",
     "notGenerated": "Today's digest not generated yet",
-    "fetched": "Fetched {count}",
-    "scored": "Scored {count}",
-    "selected": "Selected {count}",
+    "fetched": "Tracked {count}",
+    "selected": "Curated {count}",
     "history": "History"
   },
   "DigestsPage": {
@@ -18,9 +17,8 @@
   },
   "DigestDatePage": {
     "digest": "<strong>Digest</strong>",
-    "fetched": "Fetched {count}",
-    "scored": "Scored {count}",
-    "selected": "Selected {count}"
+    "fetched": "Tracked {count}",
+    "selected": "Curated {count}"
   },
   "DigestCard": {
     "read": "Read"

@@ -36,10 +36,9 @@ export default async function DigestDatePage({
             })}
           </h2>
         </Link>
-        {digest.stats.scored > 0 && (
+        {digest.stats.fetched > 0 && (
           <p className="mt-1.5 font-normal text-muted-foreground/60 text-sm">
             {t('fetched', { count: digest.stats.fetched })} ·{' '}
-            {t('scored', { count: digest.stats.scored })} ·{' '}
             {t('selected', { count: digest.stats.selected })}
           </p>
         )}
