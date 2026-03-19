@@ -153,7 +153,11 @@ export const digestArticles = pgTable(
       .notNull()
       .references(() => articles.id, { onDelete: 'cascade' }),
     rank: smallint().notNull(),
-    summary: text().notNull(),
+    titleZh: text('title_zh').notNull(),
+    titleEn: text('title_en').notNull(),
+    summaryZh: text('summary_zh').notNull(),
+    summaryEn: text('summary_en').notNull(),
+    finalScore: numeric('final_score', { precision: 4, scale: 1 }).notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.digestId, table.articleId] }),

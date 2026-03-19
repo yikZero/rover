@@ -15,6 +15,13 @@
       "when": 1773843933928,
       "tag": "0001_brief_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774022400000,
+      "tag": "0002_bilingual-digest-articles",
+      "breakpoints": true
     }
   ]
 }
