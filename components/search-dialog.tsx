@@ -87,7 +87,7 @@ export function SearchButton() {
         className="-m-2 flex items-center justify-center p-2 text-muted-foreground transition-colors hover:text-foreground"
         aria-label={t('title')}
       >
-        <Search className="size-4" />
+        <Search className="size-5" />
       </button>
       <CommandDialog
         open={open}
