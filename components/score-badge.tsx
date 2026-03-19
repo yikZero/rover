@@ -2,10 +2,10 @@ import { cn } from '@/lib/utils'
 
 interface ScoreBadgeProps {
   rank: number
-  total: string
+  finalScore: string
 }
 
-export function ScoreBadge({ rank, total }: ScoreBadgeProps) {
+export function ScoreBadge({ rank, finalScore }: ScoreBadgeProps) {
   const isTop = rank <= 3
 
   return (
@@ -17,7 +17,7 @@ export function ScoreBadge({ rank, total }: ScoreBadgeProps) {
           : 'bg-muted text-muted-foreground',
       )}
     >
-      {total}
+      {finalScore}
     </div>
   )
 }

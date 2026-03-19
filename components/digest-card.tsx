@@ -4,11 +4,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export interface DigestArticle {
   rank: number
-  title: string
+  titleZh: string
+  titleEn: string
   url: string
-  summary: string
+  summaryZh: string
+  summaryEn: string
   feedTitle: string
-  total: string
+  finalScore: string
 }
 
 export function DigestCardSkeleton() {
@@ -49,19 +51,19 @@ export function DigestCard({ article }: { article: DigestArticle }) {
             #{article.rank}
           </span>
           <div>
-            <h3 className="font-medium leading-snug">{article.title}</h3>
+            <h3 className="font-medium leading-snug">{article.titleZh}</h3>
             <p className="mt-1 line-clamp-2 text-muted-foreground text-sm leading-relaxed">
-              {article.summary}
+              {article.summaryZh}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-6 max-md:justify-between">
-          <ScoreBadge rank={article.rank} total={article.total} />
+          <ScoreBadge rank={article.rank} finalScore={article.finalScore} />
           <a
             href={article.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Read ${article.title}`}
+            aria-label={`Read ${article.titleEn}`}
             className="flex items-center gap-1 font-medium text-primary text-sm transition-colors duration-200 before:absolute before:inset-0 hover:text-foreground"
           >
             Read
