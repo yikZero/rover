@@ -1,34 +1,34 @@
 {
   "HomePage": {
-    "todaysDigest": "Today's <strong>Digest</strong>",
-    "latestDigest": "Latest <strong>Digest</strong>",
-    "sources": "Sources",
+    "todaysDigest": "今日<strong>精选</strong>",
+    "latestDigest": "最新<strong>精选</strong>",
+    "sources": "来源",
     "emptyState": "每日精选将在北京时间 10:00 自动生成",
     "notGenerated": "今日精选尚未生成",
     "scored": "评分 {count} 篇",
     "selected": "精选 {count} 篇",
-    "history": "History"
+    "history": "历史"
   },
   "DigestsPage": {
-    "digestHistory": "Digest <strong>History</strong>",
+    "digestHistory": "历史<strong>精选</strong>",
     "selected": "精选 {count} 篇",
     "loading": "加载中...",
     "noMore": "没有更多了"
   },
   "DigestDatePage": {
-    "digest": "Digest",
+    "digest": "精选",
     "scored": "评分 {count} 篇",
     "selected": "精选 {count} 篇"
   },
   "DigestCard": {
-    "read": "Read"
+    "read": "阅读"
   },
   "Error": {
-    "title": "Something went wrong",
-    "retry": "Try again"
+    "title": "出了点问题",
+    "retry": "重试"
   },
   "NotFound": {
-    "title": "Page not found"
+    "title": "页面未找到"
   },
   "Footer": {
     "switchTo": "切换至 English"
