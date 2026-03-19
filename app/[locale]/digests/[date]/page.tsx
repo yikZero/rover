@@ -1,8 +1,6 @@
-import { ChevronLeft } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { DigestCard } from '@/components/digest-card'
-import { Link } from '@/i18n/navigation'
 import { getDigestByDate } from '@/lib/queries'
 
 export default async function DigestDatePage({
@@ -20,22 +18,16 @@ export default async function DigestDatePage({
   return (
     <section>
       <div>
-        <Link href="/digests" className="group flex items-center gap-2">
-          <ChevronLeft
-            strokeWidth={2.5}
-            className="size-6 text-muted-foreground transition-transform group-hover:-translate-x-0.5"
-          />
-          <h2 className="text-balance font-semibold text-2xl text-muted-foreground md:text-4xl">
-            {date}{' '}
-            {t.rich('digest', {
-              strong: (chunks) => (
-                <strong className="font-semibold text-foreground">
-                  {chunks}
-                </strong>
-              ),
-            })}
-          </h2>
-        </Link>
+        <h2 className="text-balance font-semibold text-2xl text-muted-foreground md:text-4xl">
+          {date}{' '}
+          {t.rich('digest', {
+            strong: (chunks) => (
+              <strong className="font-semibold text-foreground">
+                {chunks}
+              </strong>
+            ),
+          })}
+        </h2>
         {digest.stats.fetched > 0 && (
           <p className="mt-1.5 font-normal text-muted-foreground/60 text-sm">
             {t('fetched', { count: digest.stats.fetched })} ·{' '}

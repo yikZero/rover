@@ -7,7 +7,15 @@
     "notGenerated": "Today's digest not generated yet",
     "fetched": "Tracked {count}",
     "selected": "Curated {count}",
-    "history": "History"
+    "history": "History",
+    "search": "Search"
+  },
+  "SearchPage": {
+    "title": "Search Articles",
+    "placeholder": "Search articles...",
+    "noResults": "No matching articles found",
+    "found": "Found {count} articles",
+    "hint": "Type keywords to search"
   },
   "DigestsPage": {
     "digestHistory": "Digest <strong>History</strong>",

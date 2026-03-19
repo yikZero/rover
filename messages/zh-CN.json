@@ -7,7 +7,15 @@
     "notGenerated": "今日精选尚未生成",
     "fetched": "追踪 {count} 篇",
     "selected": "精选 {count} 篇",
-    "history": "历史"
+    "history": "历史精选",
+    "search": "搜索"
+  },
+  "SearchPage": {
+    "title": "搜索文章",
+    "placeholder": "输入关键词搜索文章...",
+    "noResults": "没有找到相关文章",
+    "found": "找到 {count} 篇相关文章",
+    "hint": "输入关键词开始搜索"
   },
   "DigestsPage": {
     "digestHistory": "历史<strong>精选</strong>",

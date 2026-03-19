@@ -1,6 +1,7 @@
 import { ChevronRight, Play, Rss } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { DigestCard } from '@/components/digest-card'
+import { SearchButton } from '@/components/search-dialog'
 import { Link } from '@/i18n/navigation'
 import { getLatestDigest } from '@/lib/queries'
 
@@ -90,6 +91,14 @@ export default async function HomePage({
             )}
           </p>
         </div>
+        <SearchButton />
+      </div>
+      <div className="mt-12 md:mt-16">
+        {digest.articles.map((article) => (
+          <DigestCard key={article.url} article={article} />
+        ))}
+      </div>
+      <div className="mt-12 flex justify-center">
         <Link
           href="/digests"
           className="flex items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
@@ -97,11 +106,6 @@ export default async function HomePage({
           {t('history')}
           <ChevronRight className="size-3.5" />
         </Link>
-      </div>
-      <div className="mt-12 md:mt-16">
-        {digest.articles.map((article) => (
-          <DigestCard key={article.url} article={article} />
-        ))}
       </div>
     </section>
   )
