@@ -60,7 +60,7 @@ export default async function HomePage({
 
   return (
     <section>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-6">
         <div>
           <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
             {isToday
