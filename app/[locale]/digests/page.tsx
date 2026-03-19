@@ -67,7 +67,13 @@ export default function DigestsPage() {
           className="size-6 text-muted-foreground transition-transform group-hover:-translate-x-0.5"
         />
         <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
-          {t('digestHistory')}
+          {t.rich('digestHistory', {
+            strong: (chunks) => (
+              <strong className="font-semibold text-foreground">
+                {chunks}
+              </strong>
+            ),
+          })}
         </h2>
       </Link>
       <div className="mt-12 space-y-14 md:mt-16">

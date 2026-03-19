@@ -1,7 +1,7 @@
 {
   "HomePage": {
-    "todaysDigest": "Today's Digest",
-    "latestDigest": "Latest Digest",
+    "todaysDigest": "Today's <strong>Digest</strong>",
+    "latestDigest": "Latest <strong>Digest</strong>",
     "sources": "Sources",
     "emptyState": "Daily digest auto-generated at 10:00 Beijing time",
     "notGenerated": "Today's digest not generated yet",
@@ -10,7 +10,7 @@
     "history": "History"
   },
   "DigestsPage": {
-    "digestHistory": "Digest History",
+    "digestHistory": "Digest <strong>History</strong>",
     "selected": "Selected {count}",
     "loading": "Loading...",
     "noMore": "No more digests"

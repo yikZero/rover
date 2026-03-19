@@ -1,7 +1,7 @@
 {
   "HomePage": {
-    "todaysDigest": "Today's Digest",
-    "latestDigest": "Latest Digest",
+    "todaysDigest": "Today's <strong>Digest</strong>",
+    "latestDigest": "Latest <strong>Digest</strong>",
     "sources": "Sources",
     "emptyState": "每日精选将在北京时间 10:00 自动生成",
     "notGenerated": "今日精选尚未生成",
@@ -10,7 +10,7 @@
     "history": "History"
   },
   "DigestsPage": {
-    "digestHistory": "Digest History",
+    "digestHistory": "Digest <strong>History</strong>",
     "selected": "精选 {count} 篇",
     "loading": "加载中...",
     "noMore": "没有更多了"

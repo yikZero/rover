@@ -62,7 +62,21 @@ export default async function HomePage({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-balance font-semibold text-4xl text-muted-foreground">
-            {isToday ? t('todaysDigest') : t('latestDigest')}
+            {isToday
+              ? t.rich('todaysDigest', {
+                  strong: (chunks) => (
+                    <strong className="font-semibold text-foreground">
+                      {chunks}
+                    </strong>
+                  ),
+                })
+              : t.rich('latestDigest', {
+                  strong: (chunks) => (
+                    <strong className="font-semibold text-foreground">
+                      {chunks}
+                    </strong>
+                  ),
+                })}
           </h2>
           <p className="mt-2 font-normal text-muted-foreground/60 text-sm">
             {digest.date}
