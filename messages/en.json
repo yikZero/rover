@@ -1,0 +1,36 @@
+{
+  "HomePage": {
+    "todaysDigest": "Today's Digest",
+    "latestDigest": "Latest Digest",
+    "sources": "Sources",
+    "emptyState": "Daily digest auto-generated at 10:00 Beijing time",
+    "notGenerated": "Today's digest not generated yet",
+    "scored": "Scored {count}",
+    "selected": "Selected {count}",
+    "history": "History"
+  },
+  "DigestsPage": {
+    "digestHistory": "Digest History",
+    "selected": "Selected {count}",
+    "loading": "Loading...",
+    "noMore": "No more digests"
+  },
+  "DigestDatePage": {
+    "digest": "Digest",
+    "scored": "Scored {count}",
+    "selected": "Selected {count}"
+  },
+  "DigestCard": {
+    "read": "Read"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "retry": "Try again"
+  },
+  "NotFound": {
+    "title": "Page not found"
+  },
+  "Footer": {
+    "switchTo": "Switch to 中文"
+  }
+}

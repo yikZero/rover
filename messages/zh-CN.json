@@ -1,0 +1,36 @@
+{
+  "HomePage": {
+    "todaysDigest": "Today's Digest",
+    "latestDigest": "Latest Digest",
+    "sources": "Sources",
+    "emptyState": "每日精选将在北京时间 10:00 自动生成",
+    "notGenerated": "今日精选尚未生成",
+    "scored": "评分 {count} 篇",
+    "selected": "精选 {count} 篇",
+    "history": "History"
+  },
+  "DigestsPage": {
+    "digestHistory": "Digest History",
+    "selected": "精选 {count} 篇",
+    "loading": "加载中...",
+    "noMore": "没有更多了"
+  },
+  "DigestDatePage": {
+    "digest": "Digest",
+    "scored": "评分 {count} 篇",
+    "selected": "精选 {count} 篇"
+  },
+  "DigestCard": {
+    "read": "Read"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "retry": "Try again"
+  },
+  "NotFound": {
+    "title": "Page not found"
+  },
+  "Footer": {
+    "switchTo": "切换至 English"
+  }
+}
