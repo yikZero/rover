@@ -153,8 +153,8 @@ In `lib/schema.ts`, update the `dailyDigests` table definition:
 export const dailyDigests = pgTable('daily_digests', {
   id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
   date: date().notNull().unique(),
-  totalFetched: bigint('total_fetched', { mode: 'number' }).notNull().default(0),
-  totalScored: bigint('total_scored', { mode: 'number' }).notNull().default(0),
+  totalFetched: integer('total_fetched').notNull().default(0),
+  totalScored: integer('total_scored').notNull().default(0),
   totalSelected: smallint('total_selected').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
@@ -162,7 +162,7 @@ export const dailyDigests = pgTable('daily_digests', {
 })
 ```
 
-Note: use `bigint` for `totalFetched`/`totalScored` to match the integer type in Postgres (Drizzle maps `integer` → `bigint` with `mode: 'number'` for safe JS handling).
+Add `integer` to the import from `drizzle-orm/pg-core` (alongside the existing `bigint`, `smallint`, etc.).
 
 - [ ] **Step 2: Enable `useCache` in next.config.ts**
 
@@ -175,23 +175,36 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 const nextConfig: NextConfig = {
   experimental: {
     useCache: true,
+    cacheLife: {
+      hours: { revalidate: 3600 },
+      days: { revalidate: 86400 },
+    },
   },
 }
 
 export default withNextIntl(nextConfig)
 ```
 
-- [ ] **Step 3: Verify build compiles**
+- [ ] **Step 3: Generate Drizzle migration**
+
+```bash
+cd /Users/yikzero/Code/rover
+bun run db:generate
+```
+
+This generates a migration file in `drizzle/` for the new `daily_digests` columns, keeping the Drizzle migration folder in sync with the schema.
+
+- [ ] **Step 4: Verify build compiles**
 
 ```bash
 cd /Users/yikzero/Code/rover
 bun run check
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add lib/schema.ts next.config.ts
+git add lib/schema.ts next.config.ts drizzle/
 git commit -m "feat: add stats fields to dailyDigests schema, enable use cache"
 ```
 
@@ -205,184 +218,6 @@ git commit -m "feat: add stats fields to dailyDigests schema, enable use cache"
 This is the core change. Rewrite the entire file.
 
 - [ ] **Step 1: Rewrite lib/queries.ts**
-
-```ts
-import { desc, eq, inArray } from 'drizzle-orm'
-import { cacheLife, cacheTag } from 'next/cache'
-import type { DigestArticle } from '@/components/digest-card'
-import { db } from '@/lib/db'
-import {
-  articles,
-  dailyDigests,
-  digestArticles,
-  feeds,
-} from '@/lib/schema'
-
-const digestArticleSelect = {
-  rank: digestArticles.rank,
-  titleZh: digestArticles.titleZh,
-  titleEn: digestArticles.titleEn,
-  summaryZh: digestArticles.summaryZh,
-  summaryEn: digestArticles.summaryEn,
-  finalScore: digestArticles.finalScore,
-  url: articles.url,
-  feedTitle: feeds.title,
-}
-
-function digestArticlesQuery(digestId: number) {
-  return db
-    .select(digestArticleSelect)
-    .from(digestArticles)
-    .innerJoin(articles, eq(digestArticles.articleId, articles.id))
-    .innerJoin(feeds, eq(articles.feedId, feeds.id))
-    .where(eq(digestArticles.digestId, digestId))
-    .orderBy(digestArticles.rank)
-}
-
-export async function getLatestDigest() {
-  'use cache'
-  cacheTag('digest')
-  cacheLife('hours')
-
-  const [digest] = await db
-    .select()
-    .from(dailyDigests)
-    .orderBy(desc(dailyDigests.date))
-    .limit(1)
-
-  if (!digest) return null
-
-  const items = await digestArticlesQuery(digest.id)
-
-  return {
-    date: digest.date,
-    articles: items as DigestArticle[],
-    stats: {
-      fetched: digest.totalFetched,
-      scored: digest.totalScored,
-      selected: digest.totalSelected,
-    },
-  }
-}
-
-export async function getDigestByDate(date: string) {
-  'use cache'
-  cacheTag('digest')
-  cacheLife('days')
-
-  const [digest] = await db
-    .select()
-    .from(dailyDigests)
-    .where(eq(dailyDigests.date, date))
-    .limit(1)
-
-  if (!digest) return null
-
-  const items = await digestArticlesQuery(digest.id)
-
-  return {
-    date: digest.date,
-    articles: items as DigestArticle[],
-    stats: {
-      fetched: digest.totalFetched,
-      scored: digest.totalScored,
-      selected: digest.totalSelected,
-    },
-  }
-}
-
-export async function getDigestList(cursor?: string) {
-  'use cache'
-  cacheTag('digest')
-  cacheLife('hours')
-
-  const limit = 10
-  const conditions = cursor
-    ? eq(dailyDigests.date, dailyDigests.date) // placeholder, replaced below
-    : undefined
-
-  const digests = await db
-    .select()
-    .from(dailyDigests)
-    .where(cursor ? undefined : undefined)
-    .orderBy(desc(dailyDigests.date))
-    .limit(limit + 1)
-
-  // Re-do with proper cursor filtering
-  const digestsResult = cursor
-    ? await db
-        .select()
-        .from(dailyDigests)
-        .where(
-          (() => {
-            const { lt } = require('drizzle-orm')
-            return lt(dailyDigests.date, cursor)
-          })(),
-        )
-        .orderBy(desc(dailyDigests.date))
-        .limit(limit + 1)
-    : await db
-        .select()
-        .from(dailyDigests)
-        .orderBy(desc(dailyDigests.date))
-        .limit(limit + 1)
-
-  const hasMore = digestsResult.length > limit
-  const results = hasMore ? digestsResult.slice(0, limit) : digestsResult
-  const nextCursor = hasMore ? results[results.length - 1].date : null
-
-  // Batch fetch all articles for all digests (fixes N+1)
-  const digestIds = results.map((d) => d.id)
-  const allItems =
-    digestIds.length > 0
-      ? await db
-          .select({
-            ...digestArticleSelect,
-            digestId: digestArticles.digestId,
-          })
-          .from(digestArticles)
-          .innerJoin(articles, eq(digestArticles.articleId, articles.id))
-          .innerJoin(feeds, eq(articles.feedId, feeds.id))
-          .where(inArray(digestArticles.digestId, digestIds))
-          .orderBy(digestArticles.digestId, digestArticles.rank)
-      : []
-
-  // Group articles by digestId
-  const articlesByDigest = new Map<number, DigestArticle[]>()
-  for (const item of allItems) {
-    const { digestId, ...article } = item
-    if (!articlesByDigest.has(digestId)) {
-      articlesByDigest.set(digestId, [])
-    }
-    articlesByDigest.get(digestId)!.push(article as DigestArticle)
-  }
-
-  const digestsWithArticles = results.map((digest) => ({
-    ...digest,
-    articles: articlesByDigest.get(digest.id) ?? [],
-  }))
-
-  return { digests: digestsWithArticles, nextCursor }
-}
-
-export async function getActiveFeeds() {
-  'use cache'
-  cacheTag('feeds')
-  cacheLife('days')
-
-  return db
-    .select({ title: feeds.title })
-    .from(feeds)
-    .where(eq(feeds.isActive, true))
-    .limit(5)
-}
-```
-
-Wait — the above has a messy cursor handling. Let me clean that up properly.
-
-- [ ] **Step 1 (corrected): Rewrite lib/queries.ts**
-
-Full clean rewrite:
 
 ```ts
 import { desc, eq, inArray, lt } from 'drizzle-orm'
@@ -475,15 +310,14 @@ export async function getDigestList(cursor?: string) {
   cacheLife('hours')
 
   const limit = 10
-  const query = db
+  const conditions = cursor ? lt(dailyDigests.date, cursor) : undefined
+
+  const digests = await db
     .select()
     .from(dailyDigests)
+    .where(conditions)
     .orderBy(desc(dailyDigests.date))
     .limit(limit + 1)
-
-  const digests = cursor
-    ? await query.where(lt(dailyDigests.date, cursor))
-    : await query
 
   const hasMore = digests.length > limit
   const results = hasMore ? digests.slice(0, limit) : digests
@@ -671,6 +505,7 @@ Create `app/[locale]/digests/digests-client.tsx`:
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import useSWRInfinite from 'swr/infinite'
 import type { DigestArticle } from '@/components/digest-card'
 import { DigestCard, DigestCardSkeleton } from '@/components/digest-card'
@@ -691,11 +526,11 @@ interface DigestsResponse {
 
 export function DigestsClient({
   fallbackData,
-  selectedText,
 }: {
   fallbackData: DigestsResponse[]
-  selectedText: (count: number) => string
 }) {
+  const t = useTranslations('DigestsPage')
+
   const getKey = (
     pageIndex: number,
     previousPageData: DigestsResponse | null,
@@ -743,7 +578,7 @@ export function DigestsClient({
             >
               {digest.date}
               <span className="ml-2 text-muted-foreground/50">
-                {selectedText(digest.articles.length)}
+                {t('selected', { count: digest.articles.length })}
               </span>
             </Link>
             <div className="mt-2">
@@ -769,8 +604,6 @@ export function DigestsClient({
   )
 }
 ```
-
-Note: `selectedText` is passed as a pre-resolved translation function because `useTranslations` is client-only and the parent is now a server component. The server component calls `getTranslations()` and passes the resolved string generator.
 
 - [ ] **Step 2: Rewrite the server page**
 
@@ -810,10 +643,7 @@ export default async function DigestsPage({
           })}
         </h2>
       </Link>
-      <DigestsClient
-        fallbackData={[initialData]}
-        selectedText={(count) => t('selected', { count })}
-      />
+      <DigestsClient fallbackData={[initialData]} />
     </section>
   )
 }
