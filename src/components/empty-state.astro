@@ -1,0 +1,45 @@
+---
+import { useTranslations } from '@/i18n/utils'
+import type { Locale } from '@/i18n/utils'
+import Rss from './icons/rss.astro'
+import Play from './icons/play.astro'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const t = useTranslations(locale)
+
+const sourceTypes = [
+  'Tech News',
+  'Developer Blogs',
+  'Open Source',
+  'Design & UX',
+  'AI & ML',
+]
+---
+
+<div class="flex flex-col items-center justify-center py-20">
+  <div aria-hidden class="relative min-w-64">
+    <div class="perspective-dramatic flex flex-col gap-3">
+      <div class="mask-radial-[100%_100%] mask-radial-at-top-left mask-radial-from-75% -rotate-4 rotate-x-5 rotate-z-6 pt-1 pl-5">
+        <div class="rounded-tl-xl bg-background/75 px-2 pt-3 shadow-black/6.5 shadow-lg ring-1 ring-border">
+          <div class="mb-2 flex items-center gap-2 px-2.5 font-medium text-muted-foreground text-sm">
+            {t('home.sources')}{' '}
+            <Play class="size-2 translate-y-0.5 rotate-90 fill-current opacity-50" />
+          </div>
+          <div class="flex flex-col gap-3.5 rounded-tl-lg bg-muted/50 pt-3.5 pl-4 shadow ring-1 ring-border">
+            {sourceTypes.map((type) => (
+              <div class="flex items-center gap-2">
+                <Rss class="size-3.5 text-muted-foreground" />
+                <span class="text-sm">{type}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="mt-8 text-md text-muted-foreground">{t('home.emptyState')}</p>
+</div>

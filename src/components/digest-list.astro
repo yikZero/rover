@@ -1,0 +1,161 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n'
+import type { Locale } from '@/i18n/utils'
+import { useTranslations } from '@/i18n/utils'
+import type { DigestWithArticles } from '@/lib/types'
+import DigestCard from './digest-card.astro'
+
+interface Props {
+  locale: Locale
+  initialDigests: DigestWithArticles[]
+  nextCursor: string | null
+}
+
+const { locale, initialDigests, nextCursor } = Astro.props
+const t = useTranslations(locale)
+const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
+---
+
+<div id="digest-list" data-next-cursor={nextCursor} data-locale-path={localePath}>
+  {initialDigests.map((digest) => (
+    <div class="mt-8 first:mt-6" data-digest>
+      <div class="mb-2 flex items-center justify-between">
+        <a
+          href={`${localePath}/digests/${digest.date}`}
+          class="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+        >
+          {digest.date}
+        </a>
+        {digest.stats.selected > 0 && (
+          <span class="text-muted-foreground/60 text-xs">
+            {t('digests.selected', { count: digest.stats.selected })}
+          </span>
+        )}
+      </div>
+      {digest.articles.map((article) => (
+        <DigestCard article={article} locale={locale} />
+      ))}
+    </div>
+  ))}
+</div>
+
+<div id="scroll-sentinel" class="h-px"></div>
+<div id="scroll-status" class="py-8 text-center text-muted-foreground text-sm">
+  {!nextCursor && t('digests.noMore')}
+</div>
+
+<template id="digest-skeleton">
+  <div class="mt-8 space-y-2">
+    <div class="h-5 w-28 animate-pulse rounded bg-muted"></div>
+    <div class="h-16 animate-pulse rounded bg-muted"></div>
+    <div class="h-16 animate-pulse rounded bg-muted"></div>
+    <div class="h-16 animate-pulse rounded bg-muted"></div>
+  </div>
+</template>
+
+<script>
+  const container = document.getElementById('digest-list')!
+  const sentinel = document.getElementById('scroll-sentinel')!
+  const status = document.getElementById('scroll-status')!
+  const skeletonTemplate = document.getElementById(
+    'digest-skeleton',
+  ) as HTMLTemplateElement
+
+  let cursor = container.dataset.nextCursor || null
+  let loading = false
+  let observer: IntersectionObserver | null = null
+
+  if (!cursor) {
+    sentinel.remove()
+  } else {
+    observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && cursor && !loading) {
+          loadMore()
+        }
+      },
+      { rootMargin: '200px' },
+    )
+    observer.observe(sentinel)
+  }
+
+  async function loadMore() {
+    if (!cursor || loading) return
+    loading = true
+
+    const skeleton = skeletonTemplate.content.cloneNode(true)
+    status.innerHTML = ''
+    status.appendChild(skeleton)
+
+    try {
+      const res = await fetch(`/api/digests?cursor=${cursor}`)
+      const data = await res.json()
+
+      const locale = document.documentElement.lang || 'zh-CN'
+      const isZh = locale === 'zh-CN'
+      const localePath = container.dataset.localePath || ''
+
+      for (const digest of data.digests) {
+        const section = document.createElement('div')
+        section.className = 'mt-8'
+        section.dataset.digest = ''
+
+        const header = document.createElement('div')
+        header.className = 'mb-2 flex items-center justify-between'
+        header.innerHTML = `<a href="${localePath}/digests/${digest.date}" class="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground">${digest.date}</a>`
+        if (digest.stats?.selected > 0) {
+          const selectedText = isZh
+            ? `精选 ${digest.stats.selected} 篇`
+            : `Selected ${digest.stats.selected}`
+          header.innerHTML += `<span class="text-muted-foreground/60 text-xs">${selectedText}</span>`
+        }
+        section.appendChild(header)
+
+        for (const article of digest.articles) {
+          const title = isZh ? article.titleZh : article.titleEn
+          const summary = isZh ? article.summaryZh : article.summaryEn
+          const isTop = article.rank <= 3
+          const badgeClass = isTop
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted text-muted-foreground'
+
+          const card = document.createElement('div')
+          card.innerHTML = `<div aria-hidden class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"></div>
+<article class="group relative grid gap-4 py-5 md:grid-cols-[1fr_auto] md:gap-8">
+  <div class="grid gap-3 md:grid-cols-[auto_1fr]">
+    <span class="text-muted-foreground text-sm tabular-nums md:w-10">#${article.rank}</span>
+    <div>
+      <h3 class="font-medium leading-snug">${title}</h3>
+      <p class="mt-1 line-clamp-2 text-muted-foreground text-sm leading-relaxed">${summary}</p>
+    </div>
+  </div>
+  <div class="flex items-center gap-6 max-md:justify-between">
+    <div class="inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold text-xs ${badgeClass}">${article.finalScore}</div>
+    <a href="${article.url}" target="_blank" rel="noopener noreferrer" aria-label="${article.titleEn}" class="flex items-center gap-1 font-medium text-primary text-sm transition-colors duration-200 before:absolute before:inset-0 hover:text-foreground">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-3.5 translate-y-px duration-200 group-hover:translate-x-0.5"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+  </div>
+</article>`
+          section.appendChild(card)
+        }
+
+        container.appendChild(section)
+      }
+
+      cursor = data.nextCursor
+      if (!cursor) {
+        observer?.disconnect()
+        sentinel.remove()
+        const noMoreText = isZh ? '没有更多了' : 'No more digests'
+        status.innerHTML = `<span>${noMoreText}</span>`
+      } else {
+        status.innerHTML = ''
+      }
+    } catch {
+      status.innerHTML =
+        '<span class="text-destructive">Failed to load</span>'
+    } finally {
+      loading = false
+    }
+  }
+</script>

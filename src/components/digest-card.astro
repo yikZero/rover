@@ -1,0 +1,47 @@
+---
+import type { Locale } from '@/i18n/utils'
+import type { DigestArticle } from '@/lib/types'
+import ScoreBadge from './score-badge.astro'
+import ChevronRight from './icons/chevron-right.astro'
+
+interface Props {
+  article: DigestArticle
+  locale: Locale
+}
+
+const { article, locale } = Astro.props
+const title = locale === 'en' ? article.titleEn : article.titleZh
+const summary = locale === 'en' ? article.summaryEn : article.summaryZh
+---
+
+<div>
+  <div
+    aria-hidden
+    class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"
+  ></div>
+  <article class="group relative grid gap-4 py-5 md:grid-cols-[1fr_auto] md:gap-8">
+    <div class="grid gap-3 md:grid-cols-[auto_1fr]">
+      <span class="text-muted-foreground text-sm tabular-nums md:w-10">
+        #{article.rank}
+      </span>
+      <div>
+        <h3 class="font-medium leading-snug">{title}</h3>
+        <p class="mt-1 line-clamp-2 text-muted-foreground text-sm leading-relaxed">
+          {summary}
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-6 max-md:justify-between">
+      <ScoreBadge rank={article.rank} finalScore={article.finalScore} />
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={title}
+        class="flex items-center gap-1 font-medium text-primary text-sm transition-colors duration-200 before:absolute before:inset-0 hover:text-foreground"
+      >
+        <ChevronRight class="size-3.5 translate-y-px duration-200 group-hover:translate-x-0.5" />
+      </a>
+    </div>
+  </article>
+</div>
