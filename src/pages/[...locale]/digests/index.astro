@@ -4,6 +4,6 @@ import { locales } from '@/i18n/utils'
 import Digests from '@/components/pages/digests.astro'
 
 const locale = Astro.currentLocale as Locale
-if (!locales.includes(locale)) return Astro.redirect('/zh-CN/')
+if (!locales.includes(locale)) return Astro.redirect('/')
 ---
 <Digests locale={locale} />

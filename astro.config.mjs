@@ -9,8 +9,7 @@ export default defineConfig({
     locales: ['zh-CN', 'en'],
     defaultLocale: 'zh-CN',
     routing: {
-      prefixDefaultLocale: true,
-      redirectToDefaultLocale: true,
+      prefixDefaultLocale: false,
     },
   },
   env: {
