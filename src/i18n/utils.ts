@@ -6,6 +6,13 @@ export type { Locale }
 // Must match astro.config.mjs i18n.locales
 export const locales: Locale[] = ['zh-CN', 'en']
 
+export function getLocaleStaticPaths() {
+  return [
+    { params: { locale: undefined }, props: { locale: 'zh-CN' as Locale } },
+    { params: { locale: 'en' }, props: { locale: 'en' as Locale } },
+  ]
+}
+
 export function useTranslations(locale: Locale) {
   return (key: TranslationKey, params?: Record<string, string | number>) => {
     let text: string = ui[locale]?.[key] ?? ui['zh-CN'][key] ?? key

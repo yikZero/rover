@@ -3,7 +3,7 @@ import vercel from '@astrojs/vercel'
 import { defineConfig, envField } from 'astro/config'
 
 export default defineConfig({
-  output: 'server',
+  output: 'static',
   adapter: vercel(),
   i18n: {
     locales: ['zh-CN', 'en'],
@@ -12,11 +12,15 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
+  prefetch: {
+    defaultStrategy: 'hover',
+  },
   env: {
     schema: {
       DATABASE_URL: envField.string({ context: 'server', access: 'secret' }),
       GOOGLE_GENERATIVE_AI_API_KEY: envField.string({ context: 'server', access: 'secret' }),
       CRON_SECRET: envField.string({ context: 'server', access: 'secret' }),
+      VERCEL_DEPLOY_HOOK_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   vite: {

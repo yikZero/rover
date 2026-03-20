@@ -1,4 +1,4 @@
-import { desc, eq, inArray, lt } from 'drizzle-orm'
+import { asc, desc, eq, inArray, lt } from 'drizzle-orm'
 import { db } from './db'
 import { articles, dailyDigests, digestArticles, feeds } from './schema'
 import type { DigestArticle, DigestWithArticles } from './types'
@@ -123,4 +123,13 @@ export async function getDigestList(cursor?: string): Promise<{
   }))
 
   return { digests: digestsWithArticles, nextCursor }
+}
+
+export async function getAllDigestDates(): Promise<string[]> {
+  const results = await db
+    .select({ date: dailyDigests.date })
+    .from(dailyDigests)
+    .orderBy(asc(dailyDigests.date))
+
+  return results.map((r) => r.date)
 }

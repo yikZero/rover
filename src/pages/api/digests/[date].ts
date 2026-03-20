@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro'
 import { getDigestByDate } from '@/lib/queries'
 
+export const prerender = false
+
 export const GET: APIRoute = async ({ params }) => {
   const { date } = params
   if (!date) {

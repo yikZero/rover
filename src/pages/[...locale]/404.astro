@@ -1,9 +1,14 @@
 ---
+import { getLocaleStaticPaths } from '@/i18n/utils'
 import type { Locale } from '@/i18n/utils'
 import { useTranslations } from '@/i18n/utils'
 import BaseLayout from '@/layouts/base.astro'
 
-const locale = (Astro.currentLocale ?? 'zh-CN') as Locale
+export function getStaticPaths() {
+  return getLocaleStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
 const t = useTranslations(locale)
 ---
 

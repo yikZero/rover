@@ -1,4 +1,6 @@
-import { CRON_SECRET } from 'astro:env/server'
+export const prerender = false
+
+import { CRON_SECRET, VERCEL_DEPLOY_HOOK_URL } from 'astro:env/server'
 import type { APIRoute } from 'astro'
 
 export const POST: APIRoute = async ({ request }) => {
@@ -10,10 +12,13 @@ export const POST: APIRoute = async ({ request }) => {
     })
   }
 
-  const body = (await request.json().catch(() => ({}))) as { tag?: string }
-  const tag = body.tag ?? 'digest'
+  // Trigger Vercel rebuild to regenerate static pages
+  if (VERCEL_DEPLOY_HOOK_URL) {
+    await fetch(VERCEL_DEPLOY_HOOK_URL, { method: 'POST' }).catch(() => {})
+  }
 
-  return new Response(JSON.stringify({ revalidated: true, tag }), {
-    headers: { 'Content-Type': 'application/json' },
-  })
+  return new Response(
+    JSON.stringify({ revalidated: true, rebuild: !!VERCEL_DEPLOY_HOOK_URL }),
+    { headers: { 'Content-Type': 'application/json' } },
+  )
 }

@@ -1,3 +1,5 @@
+export const prerender = false
+
 import { GOOGLE_GENERATIVE_AI_API_KEY } from 'astro:env/server'
 import { GoogleGenAI } from '@google/genai'
 import type { APIRoute } from 'astro'
