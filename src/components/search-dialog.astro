@@ -29,14 +29,6 @@ const t = useTranslations(locale)
 </dialog>
 
 <script>
-  const dialog = document.getElementById('search-dialog') as HTMLDialogElement
-  const input = document.getElementById('search-input') as HTMLInputElement
-  const resultsContainer = document.getElementById('search-results')!
-  const hint = document.getElementById('search-hint')!
-
-  let debounceTimer: ReturnType<typeof setTimeout>
-  let abortController: AbortController | null = null
-
   function getLocale(): string {
     return document.documentElement.lang || 'zh-CN'
   }
@@ -44,84 +36,98 @@ const t = useTranslations(locale)
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault()
-      dialog.showModal()
-      input.focus()
-    }
-  })
-
-  dialog.addEventListener('click', (e) => {
-    if (e.target === dialog) dialog.close()
-  })
-
-  input.addEventListener('input', () => {
-    clearTimeout(debounceTimer)
-    const query = input.value.trim()
-
-    if (!query) {
-      resultsContainer.innerHTML = ''
-      resultsContainer.appendChild(hint)
-      return
-    }
-
-    debounceTimer = setTimeout(() => performSearch(query), 500)
-  })
-
-  async function performSearch(query: string) {
-    abortController?.abort()
-    abortController = new AbortController()
-
-    resultsContainer.innerHTML =
-      '<div class="space-y-2 p-2">' +
-      Array(3)
-        .fill('<div class="h-12 animate-pulse rounded-md bg-muted"></div>')
-        .join('') +
-      '</div>'
-
-    try {
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-        signal: abortController.signal,
-      })
-      const data = await res.json()
-      renderResults(data.results)
-    } catch (e) {
-      if ((e as Error).name !== 'AbortError') {
-        const isZh = getLocale() === 'zh-CN'
-        resultsContainer.innerHTML =
-          `<p class="py-6 text-center text-muted-foreground text-sm">${isZh ? '搜索失败' : 'Search failed'}</p>`
+      const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
+      const input = document.getElementById('search-input') as HTMLInputElement | null
+      if (dialog && input) {
+        dialog.showModal()
+        input.focus()
       }
     }
-  }
+  })
 
-  function renderResults(results: Array<Record<string, unknown>>) {
-    const locale = getLocale()
-    const isZh = locale === 'zh-CN'
+  document.addEventListener('astro:page-load', () => {
+    const dialog = document.getElementById('search-dialog') as HTMLDialogElement
+    const input = document.getElementById('search-input') as HTMLInputElement
+    const resultsContainer = document.getElementById('search-results')!
+    const hint = document.getElementById('search-hint')!
 
-    if (!results?.length) {
+    let debounceTimer: ReturnType<typeof setTimeout>
+    let abortController: AbortController | null = null
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close()
+    })
+
+    input.addEventListener('input', () => {
+      clearTimeout(debounceTimer)
+      const query = input.value.trim()
+
+      if (!query) {
+        resultsContainer.innerHTML = ''
+        resultsContainer.appendChild(hint)
+        return
+      }
+
+      debounceTimer = setTimeout(() => performSearch(query), 500)
+    })
+
+    async function performSearch(query: string) {
+      abortController?.abort()
+      abortController = new AbortController()
+
       resultsContainer.innerHTML =
-        '<p class="py-6 text-center text-muted-foreground text-sm">' +
-        (isZh ? '没有找到相关文章' : 'No matching articles found') +
-        '</p>'
-      return
+        '<div class="space-y-2 p-2">' +
+        Array(3)
+          .fill('<div class="h-12 animate-pulse rounded-md bg-muted"></div>')
+          .join('') +
+        '</div>'
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+          signal: abortController.signal,
+        })
+        const data = await res.json()
+        renderResults(data.results)
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') {
+          const isZh = getLocale() === 'zh-CN'
+          resultsContainer.innerHTML =
+            `<p class="py-6 text-center text-muted-foreground text-sm">${isZh ? '搜索失败' : 'Search failed'}</p>`
+        }
+      }
     }
 
-    const html = results
-      .map((r) => {
-        const title = isZh ? r.titleZh : r.titleEn
-        const summary = isZh ? r.summaryZh : r.summaryEn
-        return `<a href="${r.url}" target="_blank" rel="noopener noreferrer" class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent">
+    function renderResults(results: Array<Record<string, unknown>>) {
+      const locale = getLocale()
+      const isZh = locale === 'zh-CN'
+
+      if (!results?.length) {
+        resultsContainer.innerHTML =
+          '<p class="py-6 text-center text-muted-foreground text-sm">' +
+          (isZh ? '没有找到相关文章' : 'No matching articles found') +
+          '</p>'
+        return
+      }
+
+      const html = results
+        .map((r) => {
+          const title = isZh ? r.titleZh : r.titleEn
+          const summary = isZh ? r.summaryZh : r.summaryEn
+          return `<a href="${r.url}" target="_blank" rel="noopener noreferrer" class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent">
         <div class="font-medium">${title}</div>
         ${summary ? `<div class="mt-0.5 line-clamp-1 text-muted-foreground text-xs">${summary}</div>` : ''}
       </a>`
-      })
-      .join('')
+        })
+        .join('')
 
-    const count = results.length
-    const label = isZh
-      ? `找到 ${count} 篇相关文章`
-      : `Found ${count} articles`
-    resultsContainer.innerHTML = `<p class="px-3 py-1.5 text-muted-foreground text-xs">${label}</p>${html}`
-  }
+      const count = results.length
+      const label = isZh
+        ? `找到 ${count} 篇相关文章`
+        : `Found ${count} articles`
+      resultsContainer.innerHTML = `<p class="px-3 py-1.5 text-muted-foreground text-xs">${label}</p>${html}`
+    }
+  })
 </script>

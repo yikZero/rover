@@ -60,14 +60,16 @@ const navLinks = [
 </header>
 
 <script>
-  const trigger = document.getElementById('header-search-trigger')
-  const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
-  const input = document.getElementById('search-input') as HTMLInputElement | null
+  document.addEventListener('astro:page-load', () => {
+    const trigger = document.getElementById('header-search-trigger')
+    const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
+    const input = document.getElementById('search-input') as HTMLInputElement | null
 
-  if (trigger && dialog && input) {
-    trigger.addEventListener('click', () => {
-      dialog.showModal()
-      input.focus()
-    })
-  }
+    if (trigger && dialog && input) {
+      trigger.addEventListener('click', () => {
+        dialog.showModal()
+        input.focus()
+      })
+    }
+  })
 </script>

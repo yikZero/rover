@@ -54,73 +54,76 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
 </template>
 
 <script>
-  const container = document.getElementById('digest-list')!
-  const sentinel = document.getElementById('scroll-sentinel')!
-  const status = document.getElementById('scroll-status')!
-  const skeletonTemplate = document.getElementById(
-    'digest-skeleton',
-  ) as HTMLTemplateElement
+  document.addEventListener('astro:page-load', () => {
+    const container = document.getElementById('digest-list')
+    const sentinel = document.getElementById('scroll-sentinel')
+    const status = document.getElementById('scroll-status')
+    const skeletonTemplate = document.getElementById(
+      'digest-skeleton',
+    ) as HTMLTemplateElement | null
 
-  let cursor = container.dataset.nextCursor || null
-  let loading = false
-  let observer: IntersectionObserver | null = null
+    if (!container || !sentinel || !status || !skeletonTemplate) return
 
-  if (!cursor) {
-    sentinel.remove()
-  } else {
-    observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && cursor && !loading) {
-          loadMore()
-        }
-      },
-      { rootMargin: '200px' },
-    )
-    observer.observe(sentinel)
-  }
+    let cursor = container.dataset.nextCursor || null
+    let loading = false
+    let observer: IntersectionObserver | null = null
 
-  async function loadMore() {
-    if (!cursor || loading) return
-    loading = true
+    if (!cursor) {
+      sentinel.remove()
+    } else {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && cursor && !loading) {
+            loadMore()
+          }
+        },
+        { rootMargin: '200px' },
+      )
+      observer.observe(sentinel)
+    }
 
-    const skeleton = skeletonTemplate.content.cloneNode(true)
-    status.innerHTML = ''
-    status.appendChild(skeleton)
+    async function loadMore() {
+      if (!cursor || loading) return
+      loading = true
 
-    try {
-      const res = await fetch(`/api/digests?cursor=${cursor}`)
-      const data = await res.json()
+      const skeleton = skeletonTemplate!.content.cloneNode(true)
+      status!.innerHTML = ''
+      status!.appendChild(skeleton)
 
-      const locale = document.documentElement.lang || 'zh-CN'
-      const isZh = locale === 'zh-CN'
-      const localePath = container.dataset.localePath || ''
+      try {
+        const res = await fetch(`/api/digests?cursor=${cursor}`)
+        const data = await res.json()
 
-      for (const digest of data.digests) {
-        const section = document.createElement('div')
-        section.className = 'mt-8'
-        section.dataset.digest = ''
+        const locale = document.documentElement.lang || 'zh-CN'
+        const isZh = locale === 'zh-CN'
+        const localePath = container!.dataset.localePath || ''
 
-        const header = document.createElement('div')
-        header.className = 'mb-2 flex items-center justify-between'
-        header.innerHTML = `<a href="${localePath}/digests/${digest.date}" class="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground">${digest.date}</a>`
-        if (digest.stats?.selected > 0) {
-          const selectedText = isZh
-            ? `精选 ${digest.stats.selected} 篇`
-            : `Selected ${digest.stats.selected}`
-          header.innerHTML += `<span class="text-muted-foreground/60 text-xs">${selectedText}</span>`
-        }
-        section.appendChild(header)
+        for (const digest of data.digests) {
+          const section = document.createElement('div')
+          section.className = 'mt-8'
+          section.dataset.digest = ''
 
-        for (const article of digest.articles) {
-          const title = isZh ? article.titleZh : article.titleEn
-          const summary = isZh ? article.summaryZh : article.summaryEn
-          const isTop = article.rank <= 3
-          const badgeClass = isTop
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-muted text-muted-foreground'
+          const header = document.createElement('div')
+          header.className = 'mb-2 flex items-center justify-between'
+          header.innerHTML = `<a href="${localePath}/digests/${digest.date}" class="font-medium text-muted-foreground text-sm transition-colors hover:text-foreground">${digest.date}</a>`
+          if (digest.stats?.selected > 0) {
+            const selectedText = isZh
+              ? `精选 ${digest.stats.selected} 篇`
+              : `Selected ${digest.stats.selected}`
+            header.innerHTML += `<span class="text-muted-foreground/60 text-xs">${selectedText}</span>`
+          }
+          section.appendChild(header)
 
-          const card = document.createElement('div')
-          card.innerHTML = `<div aria-hidden class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"></div>
+          for (const article of digest.articles) {
+            const title = isZh ? article.titleZh : article.titleEn
+            const summary = isZh ? article.summaryZh : article.summaryEn
+            const isTop = article.rank <= 3
+            const badgeClass = isTop
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground'
+
+            const card = document.createElement('div')
+            card.innerHTML = `<div aria-hidden class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"></div>
 <article class="group relative grid gap-4 py-5 md:grid-cols-[1fr_auto] md:gap-8">
   <div class="grid gap-3 md:grid-cols-[auto_1fr]">
     <span class="text-muted-foreground text-sm tabular-nums md:w-10">#${article.rank}</span>
@@ -136,26 +139,27 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
     </a>
   </div>
 </article>`
-          section.appendChild(card)
+            section.appendChild(card)
+          }
+
+          container!.appendChild(section)
         }
 
-        container.appendChild(section)
+        cursor = data.nextCursor
+        if (!cursor) {
+          observer?.disconnect()
+          sentinel!.remove()
+          const noMoreText = isZh ? '没有更多了' : 'No more digests'
+          status!.innerHTML = `<span>${noMoreText}</span>`
+        } else {
+          status!.innerHTML = ''
+        }
+      } catch {
+        status!.innerHTML =
+          '<span class="text-destructive">Failed to load</span>'
+      } finally {
+        loading = false
       }
-
-      cursor = data.nextCursor
-      if (!cursor) {
-        observer?.disconnect()
-        sentinel.remove()
-        const noMoreText = isZh ? '没有更多了' : 'No more digests'
-        status.innerHTML = `<span>${noMoreText}</span>`
-      } else {
-        status.innerHTML = ''
-      }
-    } catch {
-      status.innerHTML =
-        '<span class="text-destructive">Failed to load</span>'
-    } finally {
-      loading = false
     }
-  }
+  })
 </script>
