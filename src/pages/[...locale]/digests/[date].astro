@@ -1,19 +1,20 @@
 ---
+export const prerender = false
+
 import type { Locale } from '@/i18n/utils'
-import { defaultLocale, locales } from '@/i18n/utils'
-import { getAllDigestDates } from '@/lib/queries'
+import { defaultLocale } from '@/i18n/utils'
+import { getDigestByDate } from '@/lib/queries'
 import DigestDate from '@/components/pages/digest-date.astro'
+import { getRelativeLocaleUrl } from 'astro:i18n'
 
-export async function getStaticPaths() {
-  const dates = await getAllDigestDates()
-  return locales.flatMap((locale) =>
-    dates.map((date) => ({
-      params: { locale: locale === defaultLocale ? undefined : locale, date },
-      props: { locale, date },
-    })),
-  )
+Astro.response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800')
+
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale
+const date = Astro.params.date!
+
+const digest = await getDigestByDate(date)
+if (!digest) {
+  return Astro.redirect(getRelativeLocaleUrl(locale, '/404'))
 }
-
-const { locale, date } = Astro.props as { locale: Locale; date: string }
 ---
-<DigestDate locale={locale} date={date} />
+<DigestDate locale={locale} date={date} digest={digest} />

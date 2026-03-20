@@ -1,19 +1,18 @@
 ---
 import type { Locale } from '@/i18n/utils'
 import { richText, useTranslations } from '@/i18n/utils'
-import { getDigestByDate } from '@/lib/queries'
+import type { DigestWithArticles } from '@/lib/types'
 import DigestCard from '@/components/digest-card.astro'
 import BaseLayout from '@/layouts/base.astro'
 
 interface Props {
   locale: Locale
   date: string
+  digest: DigestWithArticles
 }
 
-const { locale, date } = Astro.props
+const { locale, date, digest } = Astro.props
 const t = useTranslations(locale)
-
-const digest = (await getDigestByDate(date))!
 ---
 
 <BaseLayout locale={locale} title={`${date} - Rover`}>
