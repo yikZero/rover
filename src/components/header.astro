@@ -1,0 +1,71 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n'
+import type { Locale } from '@/i18n/utils'
+import { useTranslations } from '@/i18n/utils'
+import Icon from '@/components/icon.astro'
+
+const locale = (Astro.currentLocale ?? 'zh-CN') as Locale
+const t = useTranslations(locale)
+
+const homeHref = getRelativeLocaleUrl(locale, '/')
+const digestsHref = getRelativeLocaleUrl(locale, '/digests')
+
+const targetLocale: Locale = locale === 'zh-CN' ? 'en' : 'zh-CN'
+const cleanPath = Astro.url.pathname.replace(/^\/en(\/|$)/, '/')
+const targetPath = getRelativeLocaleUrl(targetLocale, cleanPath)
+
+const navLinks = [
+  { label: t('nav.digests'), href: digestsHref },
+]
+---
+
+<header class="pointer-events-none sticky top-0 z-50 h-20">
+  <div class="absolute inset-0 bg-gradient-to-b from-background via-background/60 to-transparent"></div>
+  <div class="pointer-events-auto relative mx-auto flex h-14 max-w-5xl items-center px-6">
+    <a href={homeHref} class="flex items-center text-foreground" aria-label="Rover">
+      <svg class="size-6 shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="currentColor" />
+      </svg>
+    </a>
+
+    <nav class="ml-auto flex items-center gap-1">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="rounded-md px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
+        >
+          {link.label}
+        </a>
+      ))}
+      <button
+        type="button"
+        id="header-search-trigger"
+        class="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+        aria-label={t('home.search')}
+      >
+        <Icon name="search" class="size-4" />
+      </button>
+      <a
+        href={targetPath}
+        class="flex items-center gap-1 rounded-md px-2 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
+        aria-label={t('footer.switchTo')}
+      >
+        <Icon name="globe" class="size-3.5" />
+        <span>{locale === 'zh-CN' ? 'EN' : '中文'}</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const trigger = document.getElementById('header-search-trigger')
+  const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
+  const input = document.getElementById('search-input') as HTMLInputElement | null
+
+  if (trigger && dialog && input) {
+    trigger.addEventListener('click', () => {
+      dialog.showModal()
+      input.focus()
+    })
+  }
+</script>

@@ -2,7 +2,7 @@
 import type { Locale } from '@/i18n/utils'
 import type { DigestArticle } from '@/lib/types'
 import ScoreBadge from './score-badge.astro'
-import ChevronRight from './icons/chevron-right.astro'
+import Icon from '@/components/icon.astro'
 
 interface Props {
   article: DigestArticle
@@ -40,7 +40,7 @@ const summary = locale === 'en' ? article.summaryEn : article.summaryZh
         aria-label={title}
         class="flex items-center gap-1 font-medium text-primary text-sm transition-colors duration-200 before:absolute before:inset-0 hover:text-foreground"
       >
-        <ChevronRight class="size-3.5 translate-y-px duration-200 group-hover:translate-x-0.5" />
+        <Icon name="chevron-right" class="size-3.5 translate-y-px duration-200 group-hover:translate-x-0.5" />
       </a>
     </div>
   </article>

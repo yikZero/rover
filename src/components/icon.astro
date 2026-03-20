@@ -1,0 +1,20 @@
+---
+import lucide from '@iconify-json/lucide/icons.json'
+
+type IconName = keyof typeof lucide.icons
+
+interface Props {
+  name: IconName
+  class?: string
+}
+
+const { name, class: className = 'size-4' } = Astro.props
+const iconData = lucide.icons[name]
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={`0 0 ${lucide.width ?? 24} ${lucide.height ?? 24}`}
+  class={className}
+  set:html={iconData.body}
+/>

@@ -1,8 +1,7 @@
 ---
 import { useTranslations } from '@/i18n/utils'
 import type { Locale } from '@/i18n/utils'
-import Rss from './icons/rss.astro'
-import Play from './icons/play.astro'
+import Icon from '@/components/icon.astro'
 
 interface Props {
   locale: Locale
@@ -27,12 +26,12 @@ const sourceTypes = [
         <div class="rounded-tl-xl bg-background/75 px-2 pt-3 shadow-black/6.5 shadow-lg ring-1 ring-border">
           <div class="mb-2 flex items-center gap-2 px-2.5 font-medium text-muted-foreground text-sm">
             {t('home.sources')}{' '}
-            <Play class="size-2 translate-y-0.5 rotate-90 fill-current opacity-50" />
+            <Icon name="play" class="size-2 translate-y-0.5 rotate-90 fill-current opacity-50" />
           </div>
           <div class="flex flex-col gap-3.5 rounded-tl-lg bg-muted/50 pt-3.5 pl-4 shadow ring-1 ring-border">
             {sourceTypes.map((type) => (
               <div class="flex items-center gap-2">
-                <Rss class="size-3.5 text-muted-foreground" />
+                <Icon name="rss" class="size-3.5 text-muted-foreground" />
                 <span class="text-sm">{type}</span>
               </div>
             ))}

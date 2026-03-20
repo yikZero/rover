@@ -1,13 +1,9 @@
 ---
-import { getRelativeLocaleUrl } from 'astro:i18n'
 import type { Locale } from '@/i18n/utils'
 import { richText, useTranslations } from '@/i18n/utils'
 import { getLatestDigest } from '@/lib/queries'
 import DigestCard from '@/components/digest-card.astro'
 import EmptyState from '@/components/empty-state.astro'
-import LocaleSwitcher from '@/components/locale-switcher.astro'
-import SearchDialog from '@/components/search-dialog.astro'
-import ChevronRight from '@/components/icons/chevron-right.astro'
 import BaseLayout from '@/layouts/base.astro'
 
 interface Props {
@@ -16,7 +12,6 @@ interface Props {
 
 const { locale } = Astro.props
 const t = useTranslations(locale)
-const digestsHref = getRelativeLocaleUrl(locale, '/digests')
 
 let digest = null
 let error = false
@@ -44,41 +39,27 @@ const isToday = digest?.date === today
     <EmptyState locale={locale} />
   ) : (
     <section>
-      <div class="flex items-center justify-between">
-        <div>
-          <h2
-            class="text-balance font-semibold text-4xl text-muted-foreground"
-            set:html={richText(isToday ? t('home.todaysDigest') : t('home.latestDigest'))}
-          />
-          <p class="mt-2 font-normal text-muted-foreground/60 text-sm">
-            {digest.date}
-            {!isToday && ` · ${t('home.notGenerated')}`}
-            {digest.stats.fetched > 0 && (
-              <>
-                {' · '}
-                {t('home.fetched', { count: digest.stats.fetched })} ·{' '}
-                {t('home.selected', { count: digest.stats.selected })}
-              </>
-            )}
-          </p>
-        </div>
-        <SearchDialog />
+      <div>
+        <h2
+          class="text-balance font-semibold text-4xl text-muted-foreground"
+          set:html={richText(isToday ? t('home.todaysDigest') : t('home.latestDigest'))}
+        />
+        <p class="mt-2 font-normal text-muted-foreground/60 text-sm">
+          {digest.date}
+          {!isToday && ` · ${t('home.notGenerated')}`}
+          {digest.stats.fetched > 0 && (
+            <>
+              {' · '}
+              {t('home.fetched', { count: digest.stats.fetched })} ·{' '}
+              {t('home.selected', { count: digest.stats.selected })}
+            </>
+          )}
+        </p>
       </div>
       <div class="mt-12 md:mt-16">
         {digest.articles.map((article) => (
           <DigestCard article={article} locale={locale} />
         ))}
-      </div>
-      <div class="mt-12 flex items-center justify-center gap-4">
-        <a
-          href={digestsHref}
-          class="flex items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
-        >
-          {t('home.history')}
-          <ChevronRight class="size-3.5" />
-        </a>
-        <span class="text-muted-foreground/30">·</span>
-        <LocaleSwitcher />
       </div>
     </section>
   )}

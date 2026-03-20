@@ -1,28 +1,18 @@
 ---
 import type { Locale } from '@/i18n/utils'
 import { useTranslations } from '@/i18n/utils'
-import SearchIcon from './icons/search-icon.astro'
+import Icon from '@/components/icon.astro'
 
 const locale = (Astro.currentLocale ?? 'zh-CN') as Locale
 const t = useTranslations(locale)
 ---
-
-<button
-  type="button"
-  id="search-trigger"
-  class="flex items-center gap-2 rounded-md px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
-  aria-label={t('home.search')}
->
-  <SearchIcon class="size-4" />
-  <span class="hidden md:inline">{t('home.search')}</span>
-</button>
 
 <dialog
   id="search-dialog"
   class="m-0 mx-auto mt-[20vh] w-full max-w-lg rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-lg backdrop:bg-black/50"
 >
   <div class="flex items-center border-border border-b px-4">
-    <SearchIcon class="mr-2 size-4 shrink-0 text-muted-foreground" />
+    <Icon name="search" class="mr-2 size-4 shrink-0 text-muted-foreground" />
     <input
       id="search-input"
       type="text"
@@ -39,7 +29,6 @@ const t = useTranslations(locale)
 </dialog>
 
 <script>
-  const trigger = document.getElementById('search-trigger')!
   const dialog = document.getElementById('search-dialog') as HTMLDialogElement
   const input = document.getElementById('search-input') as HTMLInputElement
   const resultsContainer = document.getElementById('search-results')!
@@ -51,11 +40,6 @@ const t = useTranslations(locale)
   function getLocale(): string {
     return document.documentElement.lang || 'zh-CN'
   }
-
-  trigger.addEventListener('click', () => {
-    dialog.showModal()
-    input.focus()
-  })
 
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {

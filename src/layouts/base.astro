@@ -1,5 +1,7 @@
 ---
 import '@/styles/globals.css'
+import Header from '@/components/header.astro'
+import SearchDialog from '@/components/search-dialog.astro'
 
 interface Props {
   title?: string
@@ -23,8 +25,10 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
-    <main class="mx-auto max-w-5xl px-6 py-12 md:py-16">
+    <Header />
+    <main class="mx-auto max-w-5xl px-6 py-6 md:py-10">
       <slot />
     </main>
+    <SearchDialog />
   </body>
 </html>
