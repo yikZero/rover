@@ -1,3 +1,4 @@
+import { GOOGLE_GENERATIVE_AI_API_KEY } from 'astro:env/server'
 import { GoogleGenerativeAI, TaskType } from '@google/generative-ai'
 import type { APIRoute } from 'astro'
 import { cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
@@ -21,9 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
     })
   }
 
-  const genAI = new GoogleGenerativeAI(
-    import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY,
-  )
+  const genAI = new GoogleGenerativeAI(GOOGLE_GENERATIVE_AI_API_KEY)
   const model = genAI.getGenerativeModel({
     model: 'gemini-embedding-2-preview',
   })

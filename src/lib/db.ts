@@ -1,7 +1,7 @@
+import { DATABASE_URL } from 'astro:env/server'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 
-const connectionString = import.meta.env.DATABASE_URL ?? ''
-const client = postgres(connectionString)
+const client = postgres(DATABASE_URL)
 
 export const db = drizzle({ client })
