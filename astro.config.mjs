@@ -1,10 +1,10 @@
 import tailwindcss from '@tailwindcss/vite'
-import vercel from '@astrojs/vercel'
+import cloudflare from '@astrojs/cloudflare'
 import { defineConfig, envField } from 'astro/config'
 
 export default defineConfig({
   output: 'static',
-  adapter: vercel(),
+  adapter: cloudflare(),
   i18n: {
     locales: ['zh-CN', 'en'],
     defaultLocale: 'zh-CN',
@@ -20,7 +20,7 @@ export default defineConfig({
       DATABASE_URL: envField.string({ context: 'server', access: 'secret' }),
       GOOGLE_GENERATIVE_AI_API_KEY: envField.string({ context: 'server', access: 'secret' }),
       CRON_SECRET: envField.string({ context: 'server', access: 'secret' }),
-      VERCEL_DEPLOY_HOOK_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      CLOUDFLARE_DEPLOY_HOOK_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   vite: {
