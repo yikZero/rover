@@ -1,0 +1,12 @@
+---
+import { getLocaleStaticPaths } from '@/i18n/utils'
+import type { Locale } from '@/i18n/utils'
+import About from '@/components/pages/about.astro'
+
+export function getStaticPaths() {
+  return getLocaleStaticPaths()
+}
+
+const { locale } = Astro.props as { locale: Locale }
+---
+<About locale={locale} />

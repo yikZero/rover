@@ -1,0 +1,252 @@
+---
+import type { Locale } from '@/i18n/utils'
+import { useTranslations } from '@/i18n/utils'
+import BaseLayout from '@/layouts/base.astro'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const t = useTranslations(locale)
+const isZh = locale === 'zh-CN'
+
+const dimensions = isZh
+  ? [
+      { name: '相关性', weight: '35%', desc: '与关注领域的匹配程度' },
+      { name: '规模', weight: '10%', desc: '事件影响的广度' },
+      { name: '影响力', weight: '10%', desc: '产生的实际效果强度' },
+      { name: '新颖性', weight: '10%', desc: '信息的独特和意外程度' },
+      { name: '潜力', weight: '10%', desc: '未来 6-12 个月的持续影响' },
+      { name: '里程碑', weight: '10%', desc: '是否可能成为历史转折点' },
+      { name: '可信度', weight: '10%', desc: '来源的权威性和可靠性' },
+      { name: '积极性', weight: '5%', desc: '平衡媒体的负面偏见' },
+    ]
+  : [
+      { name: 'Relevance', weight: '35%', desc: 'How closely it matches the focus areas' },
+      { name: 'Scale', weight: '10%', desc: 'How broadly the event affects people' },
+      { name: 'Impact', weight: '10%', desc: 'How strong the real-world effect is' },
+      { name: 'Novelty', weight: '10%', desc: 'How unique and unexpected the information is' },
+      { name: 'Potential', weight: '10%', desc: 'Likely relevance over the next 6-12 months' },
+      { name: 'Legacy', weight: '10%', desc: 'Whether it could be a historical turning point' },
+      { name: 'Credibility', weight: '10%', desc: 'Authority and reliability of the source' },
+      { name: 'Positivity', weight: '5%', desc: 'Counterbalances media negativity bias' },
+    ]
+
+const interests = isZh
+  ? ['AI & LLM', '前端工程', '产品设计', '独立开发与创业', '开源', 'IoT']
+  : ['AI & LLM', 'Frontend', 'Product Design', 'Indie Dev & Startups', 'Open Source', 'IoT']
+---
+
+<BaseLayout locale={locale} title={t('about.title')} description={t('site.description')}>
+  <article class="prose">
+    {isZh ? (
+      <section>
+        <h2>Rover 是什么</h2>
+        <p>Rover 是一个 AI 驱动的每日科技文章精选。</p>
+        <p>
+          它的后台 Pipeline 每 3 小时自动从 20+ RSS 源和 30+ Twitter 账号抓取文章，使用 AI 对每篇文章进行 8 个维度的评分（0-10 分），然后在每天北京时间 10:00 自动生成当日精选。
+        </p>
+        <p>
+          绝大多数文章的得分在 3-6 分之间。只有少数文章能获得高分。如果某天没有足够重要的内容，精选列表会很短——这是刻意的设计。
+        </p>
+      </section>
+
+      <section>
+        <h2>数据来源</h2>
+        <p>
+          目前追踪 <strong>20+ RSS 源</strong>和 <strong>30+ Twitter 账号</strong>，涵盖科技媒体、AI / ML 资讯、技术博客、中文社区以及行业从业者的 Twitter 动态。所有来源每 3 小时自动抓取一次，确保信息的时效性。
+        </p>
+      </section>
+
+      <section>
+        <h2>工作流程</h2>
+        <ol>
+          <li><strong>采集</strong> — 每 3 小时从 RSS 和 Twitter 并发抓取最新内容</li>
+          <li><strong>过滤</strong> — 排除广告、招聘等噪音，过滤过短的内容</li>
+          <li><strong>去重</strong> — 使用 Gemini Embedding 生成语义向量，基于余弦相似度去除重复报道（同日阈值 0.72，跨日阈值 0.85）</li>
+          <li><strong>评分</strong> — AI 从 8 个维度独立打分，加权计算综合得分</li>
+          <li><strong>精选</strong> — 按话题聚类、控制来源多样性（每个来源最多 2 篇）、设置质量断层检测，选出 5-15 篇最佳文章</li>
+          <li><strong>生成</strong> — 为每篇文章生成中英双语标题和摘要</li>
+          <li><strong>推送</strong> — 通过 Telegram 发送摘要，同时更新网站</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>评分维度</h2>
+        <p>每篇文章由 Gemini 从以下 8 个维度进行评估，各维度独立打分（0-10），再按权重加权得出综合分：</p>
+        <ul class="mt-2">
+          {dimensions.map((d) => (
+            <li>
+              <strong>{d.name}</strong>
+              <span class="text-muted-foreground/40"> ({d.weight})</span>
+              {' — '}{d.desc}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>为什么需要「积极性」维度？</h2>
+        <p>
+          媒体天然有负面偏见——负面新闻更容易获得关注和传播。这个维度的权重很低（仅占总分的 5%），不会显著改变整体分布，但会在高分区间带来明显差异：没有它，高分文章几乎全是战争和灾难；有了它，科学发现和技术突破也能获得应有的排名。
+        </p>
+      </section>
+
+      <section>
+        <h2>关注领域</h2>
+        <p>
+          「相关性」是权重最高的维度（35%），它衡量文章与以下关注领域的匹配程度：
+        </p>
+        <div class="not-prose" style="display:flex;flex-wrap:wrap;gap:0.375rem;margin-top:0.5rem;">
+          {interests.map((tag) => (
+            <span style="padding:0 0.625rem;border:1px solid var(--border);border-radius:9999px;font-size:0.875rem;color:var(--foreground);background:var(--muted);opacity:0.7;">{tag}</span>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2>精选逻辑</h2>
+        <p>评分只是第一步。最终精选还经过以下处理：</p>
+        <ul>
+          <li><strong>话题聚类</strong> — 同一话题的多篇报道会被聚类。多来源覆盖的话题会获得「热度加成」（最高 1.4 倍），但前提是相关性评分 ≥ 7</li>
+          <li><strong>来源多样性</strong> — 每个来源最多入选 2 篇，避免单一来源垄断</li>
+          <li><strong>质量断层</strong> — 选够 5 篇后，如果下一篇与当前最低分的差距超过 2.5 分，自动停止选择</li>
+          <li><strong>内容平衡</strong> — 确保至少包含 2 条 Twitter 内容，保持信息来源的多样性</li>
+        </ul>
+      </section>
+    ) : (
+      <section>
+        <h2>What is Rover</h2>
+        <p>Rover is an AI-powered daily tech article digest.</p>
+        <p>
+          Its backend Pipeline automatically fetches articles from 20+ RSS feeds and 30+ Twitter accounts every 3 hours, scores each article across 8 dimensions (0-10) using AI, and generates a curated daily digest at 10:00 Beijing time.
+        </p>
+        <p>
+          Most articles score between 3 and 6. Only a handful receive high scores. If nothing significant happens on a given day, the digest will be short — by design.
+        </p>
+      </section>
+
+      <section>
+        <h2>Sources</h2>
+        <p>
+          Currently tracking <strong>20+ RSS feeds</strong> and <strong>30+ Twitter accounts</strong>, spanning tech media, AI/ML publications, engineering blogs, Chinese tech communities, and industry practitioners on Twitter. All sources are fetched automatically every 3 hours to ensure timeliness.
+        </p>
+      </section>
+
+      <section>
+        <h2>How It Works</h2>
+        <ol>
+          <li><strong>Collect</strong> — Fetch latest content from RSS and Twitter concurrently every 3 hours</li>
+          <li><strong>Filter</strong> — Remove noise like ads, job postings, and overly short content</li>
+          <li><strong>Deduplicate</strong> — Generate semantic embeddings via Gemini Embedding, remove duplicate coverage using cosine similarity (same-day threshold 0.72, cross-day threshold 0.85)</li>
+          <li><strong>Score</strong> — AI evaluates each article across 8 independent dimensions, then computes a weighted total</li>
+          <li><strong>Select</strong> — Cluster by topic, enforce source diversity (max 2 per source), apply quality gap detection, and pick 5-15 best articles</li>
+          <li><strong>Generate</strong> — Create bilingual (Chinese/English) titles and summaries for each article</li>
+          <li><strong>Publish</strong> — Push a summary via Telegram and update the website</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Scoring Dimensions</h2>
+        <p>Each article is evaluated by Gemini across 8 dimensions, scored independently (0-10), then combined with weights into a total score:</p>
+        <ul class="mt-2">
+          {dimensions.map((d) => (
+            <li>
+              <strong>{d.name}</strong>
+              <span class="text-muted-foreground/40"> ({d.weight})</span>
+              {' — '}{d.desc}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2>Why Positivity?</h2>
+        <p>
+          News sources have a built-in negativity bias — negative stories get more attention and spread faster. This dimension has a very low weight (only 5% of the total score) and doesn't significantly change the overall distribution, but makes a noticeable difference in the high-score range: without it, top articles are almost entirely about conflicts and disasters; with it, scientific discoveries and tech breakthroughs get their deserved ranking.
+        </p>
+      </section>
+
+      <section>
+        <h2>Focus Areas</h2>
+        <p>
+          Relevance is the highest-weighted dimension (35%). It measures how closely an article matches the following focus areas:
+        </p>
+        <div class="not-prose" style="display:flex;flex-wrap:wrap;gap:0.375rem;margin-top:0.5rem;">
+          {interests.map((tag) => (
+            <span style="padding:0 0.625rem;border:1px solid var(--border);border-radius:9999px;font-size:0.875rem;color:var(--foreground);background:var(--muted);opacity:0.7;">{tag}</span>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2>Selection Logic</h2>
+        <p>Scoring is just the first step. The final selection goes through additional processing:</p>
+        <ul>
+          <li><strong>Topic clustering</strong> — Multiple reports on the same topic are clustered. Topics covered by multiple sources get a buzz boost (up to 1.4x), but only if relevance score is ≥ 7</li>
+          <li><strong>Source diversity</strong> — Max 2 articles per source to prevent any single source from dominating</li>
+          <li><strong>Quality gap</strong> — After selecting at least 5 articles, if the gap to the next candidate exceeds 2.5 points, selection stops automatically</li>
+          <li><strong>Content balance</strong> — At least 2 Twitter posts are included to maintain source variety</li>
+        </ul>
+      </section>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+  .prose {
+    --spacing: 1.5;
+  }
+
+  .prose section {
+    margin-top: 3rem;
+  }
+
+  .prose section:first-child {
+    margin-top: 0;
+  }
+
+  .prose h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.75rem;
+  }
+
+  .prose p {
+    color: var(--muted-foreground);
+    font-size: 0.9375rem;
+    line-height: 1.75;
+  }
+
+  .prose ol,
+  .prose ul {
+    color: var(--muted-foreground);
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    padding-left: 1.25rem;
+    margin-top: 0.5rem;
+  }
+
+  .prose ol {
+    list-style-type: decimal;
+  }
+
+  .prose ul {
+    list-style-type: disc;
+  }
+
+  .prose li {
+    margin-top: 0.375rem;
+  }
+
+  .prose strong {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+
+  .prose p + p {
+    margin-top: 0.75rem;
+  }
+</style>

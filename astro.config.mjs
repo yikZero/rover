@@ -4,6 +4,7 @@ import { defineConfig, envField } from 'astro/config'
 
 export default defineConfig({
   output: 'static',
+  trailingSlash: 'never',
   adapter: vercel(),
   i18n: {
     locales: ['zh-CN', 'en'],

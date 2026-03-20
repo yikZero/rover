@@ -15,7 +15,7 @@ const { locale, date, digest } = Astro.props
 const t = useTranslations(locale)
 ---
 
-<BaseLayout locale={locale} title={`${date} - Rover`}>
+<BaseLayout locale={locale} title={`${date} ${t('digestDate.pageTitle')} - Rover`} description={t('site.description')}>
   <section>
     <div>
       <h2 class="text-balance font-semibold text-2xl text-muted-foreground md:text-4xl">

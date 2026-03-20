@@ -29,7 +29,7 @@ const today = new Date(
 const isToday = digest?.date === today
 ---
 
-<BaseLayout locale={locale}>
+<BaseLayout locale={locale} description={t('site.description')}>
   {error ? (
     <div class="flex min-h-[50vh] flex-col items-center justify-center">
       <p class="text-muted-foreground">{t('error.title')}</p>
