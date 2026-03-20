@@ -4,13 +4,14 @@ import { ui } from './ui'
 export type { Locale }
 
 // Must match astro.config.mjs i18n.locales
+export const defaultLocale: Locale = 'zh-CN'
 export const locales: Locale[] = ['zh-CN', 'en']
 
 export function getLocaleStaticPaths() {
-  return [
-    { params: { locale: undefined }, props: { locale: 'zh-CN' as Locale } },
-    { params: { locale: 'en' }, props: { locale: 'en' as Locale } },
-  ]
+  return locales.map((locale) => ({
+    params: { locale: locale === defaultLocale ? undefined : locale },
+    props: { locale },
+  }))
 }
 
 export function useTranslations(locale: Locale) {

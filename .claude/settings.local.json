@@ -41,7 +41,8 @@
       "Bash(xargs git:*)",
       "Bash(agent-browser text:*)",
       "Bash(/tmp/review.txt:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(find /Users/yikzero/Code/rover -name *.astro -type f)"
     ]
   }
 }

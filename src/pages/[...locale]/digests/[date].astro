@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '@/i18n/utils'
-import { locales } from '@/i18n/utils'
+import { defaultLocale, locales } from '@/i18n/utils'
 import { getAllDigestDates } from '@/lib/queries'
 import DigestDate from '@/components/pages/digest-date.astro'
 
@@ -8,7 +8,7 @@ export async function getStaticPaths() {
   const dates = await getAllDigestDates()
   return locales.flatMap((locale) =>
     dates.map((date) => ({
-      params: { locale: locale === 'zh-CN' ? undefined : locale, date },
+      params: { locale: locale === defaultLocale ? undefined : locale, date },
       props: { locale, date },
     })),
   )
