@@ -13,10 +13,7 @@ interface Props {
 const { locale, date } = Astro.props
 const t = useTranslations(locale)
 
-const digest = await getDigestByDate(date)
-if (!digest) {
-  return new Response(null, { status: 404, statusText: 'Not found' })
-}
+const digest = (await getDigestByDate(date))!
 ---
 
 <BaseLayout locale={locale} title={`${date} - Rover`}>

@@ -37,3 +37,5 @@ next-env.d.ts
 .superpowers/
 .agents/
 skills-lock.json
+dist/
+.astro/
