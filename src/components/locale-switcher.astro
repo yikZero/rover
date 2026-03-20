@@ -1,0 +1,16 @@
+---
+import { getLocaleFromUrl, getLocalePath, useTranslations } from '@/i18n/utils'
+
+const locale = getLocaleFromUrl(Astro.url)
+const t = useTranslations(locale)
+const targetLocale = locale === 'zh-CN' ? 'en' : 'zh-CN'
+const cleanPath = Astro.url.pathname.replace(/^\/en(\/|$)/, '/')
+const targetPath = getLocalePath(cleanPath, targetLocale)
+---
+
+<a
+  href={targetPath}
+  class="text-muted-foreground text-sm transition-colors hover:text-foreground"
+>
+  {t('footer.switchTo')}
+</a>
