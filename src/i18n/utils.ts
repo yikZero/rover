@@ -1,5 +1,5 @@
-import { ui } from './ui'
 import type { Locale, TranslationKey } from './ui'
+import { ui } from './ui'
 
 export type { Locale }
 

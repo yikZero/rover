@@ -1,5 +1,5 @@
-import type { APIRoute } from 'astro'
 import { GoogleGenerativeAI, TaskType } from '@google/generative-ai'
+import type { APIRoute } from 'astro'
 import { cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import {
@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
     content: { parts: [{ text: query.trim() }], role: 'user' },
     taskType: TaskType.RETRIEVAL_QUERY,
     outputDimensionality: 768,
-  })
+  } as Parameters<typeof model.embedContent>[0])
   const embedding = embeddingResult.embedding.values
 
   const similarity = sql<number>`1 - (${cosineDistance(articleEmbeddings.embedding, embedding)})`

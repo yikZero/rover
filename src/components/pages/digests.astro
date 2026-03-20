@@ -1,6 +1,7 @@
 ---
 import type { Locale } from '@/i18n/utils'
 import { richText, useTranslations } from '@/i18n/utils'
+import type { DigestWithArticles } from '@/lib/types'
 import { getDigestList } from '@/lib/queries'
 import DigestList from '@/components/digest-list.astro'
 import BaseLayout from '@/layouts/base.astro'
@@ -12,7 +13,7 @@ interface Props {
 const { locale } = Astro.props
 const t = useTranslations(locale)
 
-let initialData = { digests: [], nextCursor: null as string | null }
+let initialData: { digests: DigestWithArticles[]; nextCursor: string | null } = { digests: [], nextCursor: null }
 let error = false
 try {
   initialData = await getDigestList()
