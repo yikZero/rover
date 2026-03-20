@@ -63,6 +63,6 @@
     }
   },
   "files": {
-    "includes": ["app/**", "lib/**", "components/**"]
+    "includes": ["src/**"]
   }
 }
