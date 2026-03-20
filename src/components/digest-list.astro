@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '@/i18n/utils'
-import { useTranslations } from '@/i18n/utils'
+import { getLocalePrefix, useTranslations } from '@/i18n/utils'
 import type { DigestWithArticles } from '@/lib/types'
 import DigestCard from './digest-card.astro'
 
@@ -12,7 +12,7 @@ interface Props {
 
 const { locale, initialDigests, nextCursor } = Astro.props
 const t = useTranslations(locale)
-const localePath = locale === 'zh-CN' ? '' : '/en'
+const localePath = getLocalePrefix(locale)
 ---
 
 <div id="digest-list" data-next-cursor={nextCursor} data-locale-path={localePath}>
@@ -62,11 +62,12 @@ const localePath = locale === 'zh-CN' ? '' : '/en'
 
   let cursor = container.dataset.nextCursor || null
   let loading = false
+  let observer: IntersectionObserver | null = null
 
   if (!cursor) {
     sentinel.remove()
   } else {
-    const observer = new IntersectionObserver(
+    observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && cursor && !loading) {
           loadMore()
@@ -142,6 +143,7 @@ const localePath = locale === 'zh-CN' ? '' : '/en'
 
       cursor = data.nextCursor
       if (!cursor) {
+        observer?.disconnect()
         sentinel.remove()
         const noMoreText = isZh ? '没有更多了' : 'No more digests'
         status.innerHTML = `<span>${noMoreText}</span>`

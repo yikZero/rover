@@ -1,6 +1,6 @@
 ---
 import type { Locale } from '@/i18n/utils'
-import { richText, useTranslations } from '@/i18n/utils'
+import { getLocalePrefix, richText, useTranslations } from '@/i18n/utils'
 import { getLatestDigest } from '@/lib/queries'
 import DigestCard from '@/components/digest-card.astro'
 import EmptyState from '@/components/empty-state.astro'
@@ -15,7 +15,7 @@ interface Props {
 
 const { locale } = Astro.props
 const t = useTranslations(locale)
-const localePath = locale === 'zh-CN' ? '' : '/en'
+const localePath = getLocalePrefix(locale)
 
 let digest = null
 let error = false

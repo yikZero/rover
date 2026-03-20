@@ -103,8 +103,9 @@ const t = useTranslations(locale)
       renderResults(data.results)
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
+        const isZh = getLocale() === 'zh-CN'
         resultsContainer.innerHTML =
-          '<p class="py-6 text-center text-muted-foreground text-sm">Search failed</p>'
+          `<p class="py-6 text-center text-muted-foreground text-sm">${isZh ? '搜索失败' : 'Search failed'}</p>`
       }
     }
   }

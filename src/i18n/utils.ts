@@ -8,6 +8,10 @@ export function getLocaleFromUrl(url: URL): Locale {
   return segment === 'en' ? 'en' : 'zh-CN'
 }
 
+export function getLocalePrefix(locale: Locale): string {
+  return locale === 'zh-CN' ? '' : '/en'
+}
+
 export function getLocalePath(path: string, locale: Locale): string {
   const cleanPath = path.replace(/^\/en(\/|$)/, '/')
   if (locale === 'zh-CN') return cleanPath
