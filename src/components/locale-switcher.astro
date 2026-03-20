@@ -1,14 +1,11 @@
 ---
-import { getRelativeLocaleUrl } from 'astro:i18n'
 import type { Locale } from '@/i18n/utils'
 import { useTranslations } from '@/i18n/utils'
 
 const locale = (Astro.currentLocale ?? 'zh-CN') as Locale
 const t = useTranslations(locale)
-const targetLocale = locale === 'zh-CN' ? 'en' : 'zh-CN'
-
-const pathSegments = Astro.url.pathname.replace(/^\/(?:zh-CN|en)\/?/, '/').replace(/\/$/, '') || '/'
-const targetPath = getRelativeLocaleUrl(targetLocale, pathSegments)
+const targetLocale: Locale = locale === 'zh-CN' ? 'en' : 'zh-CN'
+const targetPath = Astro.url.pathname.replace(`/${locale}`, `/${targetLocale}`)
 ---
 
 <a

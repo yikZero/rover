@@ -3,6 +3,7 @@ import { ui } from './ui'
 
 export type { Locale }
 
+// Must match astro.config.mjs i18n.locales
 export const locales: Locale[] = ['zh-CN', 'en']
 
 export function useTranslations(locale: Locale) {
