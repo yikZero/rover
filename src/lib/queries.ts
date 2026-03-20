@@ -1,9 +1,11 @@
 import { asc, desc, eq, inArray, lt } from 'drizzle-orm'
-import { db } from './db'
+import { getDb } from './db'
 import { articles, dailyDigests, digestArticles, feeds } from './schema'
 import type { DigestArticle, DigestWithArticles } from './types'
 
-const digestArticleSelect = {
+type Db = ReturnType<typeof getDb>
+
+export const digestArticleSelect = {
   rank: digestArticles.rank,
   titleZh: digestArticles.titleZh,
   titleEn: digestArticles.titleEn,
@@ -14,7 +16,7 @@ const digestArticleSelect = {
   feedTitle: feeds.title,
 }
 
-function digestArticlesQuery(digestId: number) {
+function digestArticlesQuery(db: Db, digestId: number) {
   return db
     .select(digestArticleSelect)
     .from(digestArticles)
@@ -25,6 +27,7 @@ function digestArticlesQuery(digestId: number) {
 }
 
 export async function getLatestDigest(): Promise<DigestWithArticles | null> {
+  const db = getDb()
   const [digest] = await db
     .select()
     .from(dailyDigests)
@@ -33,7 +36,7 @@ export async function getLatestDigest(): Promise<DigestWithArticles | null> {
 
   if (!digest) return null
 
-  const items = await digestArticlesQuery(digest.id)
+  const items = await digestArticlesQuery(db, digest.id)
 
   return {
     date: digest.date,
@@ -49,6 +52,7 @@ export async function getLatestDigest(): Promise<DigestWithArticles | null> {
 export async function getDigestByDate(
   date: string,
 ): Promise<DigestWithArticles | null> {
+  const db = getDb()
   const [digest] = await db
     .select()
     .from(dailyDigests)
@@ -57,7 +61,7 @@ export async function getDigestByDate(
 
   if (!digest) return null
 
-  const items = await digestArticlesQuery(digest.id)
+  const items = await digestArticlesQuery(db, digest.id)
 
   return {
     date: digest.date,
@@ -77,6 +81,7 @@ export async function getDigestList(cursor?: string): Promise<{
   const limit = 10
   const conditions = cursor ? lt(dailyDigests.date, cursor) : undefined
 
+  const db = getDb()
   const digests = await db
     .select()
     .from(dailyDigests)
@@ -126,7 +131,7 @@ export async function getDigestList(cursor?: string): Promise<{
 }
 
 export async function getAllDigestDates(): Promise<string[]> {
-  const results = await db
+  const results = await getDb()
     .select({ date: dailyDigests.date })
     .from(dailyDigests)
     .orderBy(asc(dailyDigests.date))

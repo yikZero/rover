@@ -4,7 +4,8 @@ import { GOOGLE_GENERATIVE_AI_API_KEY } from 'astro:env/server'
 import { GoogleGenAI } from '@google/genai'
 import type { APIRoute } from 'astro'
 import { cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
-import { db } from '@/lib/db'
+import { getDb } from '@/lib/db'
+import { digestArticleSelect } from '@/lib/queries'
 import {
   articleEmbeddings,
   articles,
@@ -37,17 +38,10 @@ export const POST: APIRoute = async ({ request }) => {
 
   const similarity = sql<number>`1 - (${cosineDistance(articleEmbeddings.embedding, embedding)})`
 
-  const results = await db
+  const results = await getDb()
     .select({
       similarity,
-      titleZh: digestArticles.titleZh,
-      titleEn: digestArticles.titleEn,
-      summaryZh: digestArticles.summaryZh,
-      summaryEn: digestArticles.summaryEn,
-      finalScore: digestArticles.finalScore,
-      rank: digestArticles.rank,
-      url: articles.url,
-      feedTitle: feeds.title,
+      ...digestArticleSelect,
     })
     .from(articleEmbeddings)
     .innerJoin(articles, eq(articleEmbeddings.articleId, articles.id))
