@@ -1,5 +1,5 @@
 import { GOOGLE_GENERATIVE_AI_API_KEY } from 'astro:env/server'
-import { GoogleGenerativeAI, TaskType } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import type { APIRoute } from 'astro'
 import { cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
@@ -22,17 +22,16 @@ export const POST: APIRoute = async ({ request }) => {
     })
   }
 
-  const genAI = new GoogleGenerativeAI(GOOGLE_GENERATIVE_AI_API_KEY)
-  const model = genAI.getGenerativeModel({
+  const ai = new GoogleGenAI({ apiKey: GOOGLE_GENERATIVE_AI_API_KEY })
+  const embeddingResult = await ai.models.embedContent({
     model: 'gemini-embedding-2-preview',
+    contents: query.trim(),
+    config: {
+      taskType: 'RETRIEVAL_QUERY',
+      outputDimensionality: 768,
+    },
   })
-
-  const embeddingResult = await model.embedContent({
-    content: { parts: [{ text: query.trim() }], role: 'user' },
-    taskType: TaskType.RETRIEVAL_QUERY,
-    outputDimensionality: 768,
-  } as Parameters<typeof model.embedContent>[0])
-  const embedding = embeddingResult.embedding.values
+  const embedding = embeddingResult.embeddings?.[0]?.values ?? []
 
   const similarity = sql<number>`1 - (${cosineDistance(articleEmbeddings.embedding, embedding)})`
 

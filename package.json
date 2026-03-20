@@ -15,7 +15,7 @@
   "dependencies": {
     "@astrojs/check": "^0.9.8",
     "@astrojs/vercel": "^10.0.2",
-    "@google/generative-ai": "^0.24.1",
+    "@google/genai": "^1.46.0",
     "astro": "^6.0.7",
     "clsx": "2.1.1",
     "drizzle-orm": "0.45.1",
