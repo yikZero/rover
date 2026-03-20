@@ -1,6 +1,7 @@
 ---
+import { getRelativeLocaleUrl } from 'astro:i18n'
 import type { Locale } from '@/i18n/utils'
-import { getLocalePrefix, richText, useTranslations } from '@/i18n/utils'
+import { richText, useTranslations } from '@/i18n/utils'
 import { getLatestDigest } from '@/lib/queries'
 import DigestCard from '@/components/digest-card.astro'
 import EmptyState from '@/components/empty-state.astro'
@@ -15,7 +16,7 @@ interface Props {
 
 const { locale } = Astro.props
 const t = useTranslations(locale)
-const localePath = getLocalePrefix(locale)
+const digestsHref = getRelativeLocaleUrl(locale, '/digests')
 
 let digest = null
 let error = false
@@ -70,7 +71,7 @@ const isToday = digest?.date === today
       </div>
       <div class="mt-12 flex items-center justify-center gap-4">
         <a
-          href={`${localePath}/digests`}
+          href={digestsHref}
           class="flex items-center gap-1 text-muted-foreground text-sm transition-colors hover:text-foreground"
         >
           {t('home.history')}

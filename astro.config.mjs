@@ -9,7 +9,7 @@ export default defineConfig({
     locales: ['zh-CN', 'en'],
     defaultLocale: 'zh-CN',
     routing: {
-      prefixDefaultLocale: false,
+      prefixDefaultLocale: true,
     },
   },
   vite: {

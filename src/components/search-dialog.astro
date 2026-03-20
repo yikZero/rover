@@ -1,8 +1,9 @@
 ---
-import { getLocaleFromUrl, useTranslations } from '@/i18n/utils'
+import type { Locale } from '@/i18n/utils'
+import { useTranslations } from '@/i18n/utils'
 import SearchIcon from './icons/search-icon.astro'
 
-const locale = getLocaleFromUrl(Astro.url)
+const locale = (Astro.currentLocale ?? 'zh-CN') as Locale
 const t = useTranslations(locale)
 ---
 

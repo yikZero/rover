@@ -3,20 +3,7 @@ import { ui } from './ui'
 
 export type { Locale }
 
-export function getLocaleFromUrl(url: URL): Locale {
-  const segment = url.pathname.split('/')[1]
-  return segment === 'en' ? 'en' : 'zh-CN'
-}
-
-export function getLocalePrefix(locale: Locale): string {
-  return locale === 'zh-CN' ? '' : '/en'
-}
-
-export function getLocalePath(path: string, locale: Locale): string {
-  const cleanPath = path.replace(/^\/en(\/|$)/, '/')
-  if (locale === 'zh-CN') return cleanPath
-  return `/en${cleanPath === '/' ? '' : cleanPath}`
-}
+export const locales: Locale[] = ['zh-CN', 'en']
 
 export function useTranslations(locale: Locale) {
   return (key: TranslationKey, params?: Record<string, string | number>) => {

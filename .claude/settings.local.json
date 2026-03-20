@@ -38,7 +38,8 @@
       "Bash(grep:*)",
       "Bash(find /Users/yikzero/Code/rover -name messages*.json -o -name en.json -o -name zh*.json)",
       "Bash(uv run:*)",
-      "Bash(xargs git:*)"
+      "Bash(xargs git:*)",
+      "Bash(agent-browser text:*)"
     ]
   }
 }
