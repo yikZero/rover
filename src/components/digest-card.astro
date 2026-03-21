@@ -21,18 +21,20 @@ const summary = locale === 'en' ? article.summaryEn : article.summaryZh
   ></div>
   <article class="group relative grid gap-4 py-5 md:grid-cols-[1fr_auto] md:gap-8">
     <div class="grid gap-3 md:grid-cols-[auto_1fr]">
-      <span class="text-muted-foreground text-sm tabular-nums md:w-10">
+      <span class="hidden text-muted-foreground text-sm tabular-nums md:block md:w-10">
         #{article.rank}
       </span>
       <div>
-        <h3 class="font-medium leading-snug">{title}</h3>
+        <h3 class="font-medium leading-snug">
+          <span class="text-muted-foreground tabular-nums md:hidden">#{article.rank} </span>{title}
+        </h3>
         <p class="mt-1 line-clamp-3 text-muted-foreground text-sm leading-relaxed md:line-clamp-2">
           {summary}
         </p>
       </div>
     </div>
-    <div class="flex items-center gap-6 max-md:justify-between">
-      <ScoreBadge rank={article.rank} finalScore={article.finalScore} />
+    <div class="flex items-center gap-4 max-md:justify-between">
+      <ScoreBadge finalScore={article.finalScore} />
       <a
         href={article.url}
         target="_blank"

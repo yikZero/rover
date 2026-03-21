@@ -15,10 +15,16 @@ const targetLocale: Locale = locale === 'zh-CN' ? 'en' : 'zh-CN'
 const cleanPath = Astro.url.pathname.replace(/^\/en(\/|$)/, '/')
 const targetPath = getRelativeLocaleUrl(targetLocale, cleanPath)
 
+const pathname = Astro.url.pathname
+
 const navLinks = [
   { label: t('nav.digests'), href: digestsHref },
   { label: t('nav.about'), href: aboutHref },
 ]
+
+function isActive(href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
 ---
 
 <header class="pointer-events-none sticky top-0 z-50 h-20">
@@ -34,7 +40,10 @@ const navLinks = [
       {navLinks.map((link) => (
         <a
           href={link.href}
-          class="rounded-md px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
+          class:list={[
+            'rounded-md px-3 py-1.5 font-medium text-sm transition-colors hover:text-foreground',
+            isActive(link.href) ? 'text-foreground' : 'text-muted-foreground',
+          ]}
         >
           {link.label}
         </a>
@@ -49,7 +58,7 @@ const navLinks = [
       </button>
       <a
         href={targetPath}
-        class="flex items-center gap-1 rounded-md px-2 py-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
+        class="flex items-center gap-1 rounded-md px-2 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         aria-label={t('footer.switchTo')}
       >
         <Icon name="globe" class="size-3.5" />
