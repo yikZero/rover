@@ -17,18 +17,18 @@
     "@astrojs/vercel": "^10.0.2",
     "@google/genai": "^1.46.0",
     "@iconify-json/lucide": "^1.2.98",
-    "astro": "^6.0.7",
+    "astro": "^6.0.8",
     "drizzle-orm": "0.45.1",
     "postgres": "3.4.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.7",
+    "@biomejs/biome": "2.4.8",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "25.5.0",
-    "drizzle-kit": "0.31.9",
+    "drizzle-kit": "0.31.10",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
-    "tailwindcss": "4.2.1",
+    "tailwindcss": "4.2.2",
     "typescript": "5.9.3"
   }
 }
