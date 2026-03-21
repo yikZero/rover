@@ -31,7 +31,13 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
 <html lang={locale} class="antialiased" transition:animate="none">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -57,7 +63,7 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <main class="mx-auto max-w-5xl px-6 py-6 md:py-10">
       <slot />
     </main>
-    <footer class="mx-auto max-w-5xl px-6 pb-8 pt-4">
+    <footer class="mx-auto max-w-5xl px-6 pb-8 pt-4 safe-area-bottom">
       <div class="border-border/50 border-t pt-4">
         <p class="text-center text-muted-foreground/50 text-xs">
           Designed & built by <a href="https://ro.yikzero.com/" target="_blank" rel="noopener noreferrer" class="text-muted-foreground/70 transition-colors hover:text-muted-foreground">yikZero</a>
@@ -65,5 +71,12 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
       </div>
     </footer>
     <SearchDialog />
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {})
+        }, { once: true })
+      }
+    </script>
   </body>
 </html>

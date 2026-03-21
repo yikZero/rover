@@ -27,7 +27,7 @@ function isActive(href: string) {
 }
 ---
 
-<header class="pointer-events-none sticky top-0 z-50 h-20">
+<header class="pointer-events-none sticky top-0 z-50 h-20 safe-area-top">
   <div class="absolute inset-0 bg-gradient-to-b from-background via-background/60 to-transparent"></div>
   <div class="pointer-events-auto relative mx-auto flex h-14 max-w-5xl items-center px-6">
     <a href={homeHref} class="flex items-center text-foreground transition-opacity hover:opacity-60" aria-label="Rover">
@@ -79,7 +79,7 @@ function isActive(href: string) {
 
 <nav
   id="mobile-drawer"
-  class="pointer-events-none fixed inset-0 z-50 flex flex-col bg-background opacity-0 transition-opacity duration-200 md:hidden"
+  class="pointer-events-none fixed inset-0 z-50 flex flex-col bg-background opacity-0 transition-opacity duration-200 md:hidden safe-area-top"
 >
   <div class="flex h-14 items-center justify-between px-6">
     <a href={homeHref} class="flex items-center text-foreground" aria-label="Rover">
@@ -121,7 +121,7 @@ function isActive(href: string) {
     ></div>
   </div>
 
-  <div class="flex items-center justify-between px-6 pb-10 pt-6">
+  <div class="flex items-center justify-between px-6 pb-10 pt-6 safe-area-bottom">
     <button
       type="button"
       id="mobile-search-trigger"
