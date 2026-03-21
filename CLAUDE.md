@@ -16,11 +16,11 @@ bun run db:studio    # Open Drizzle Studio (DB browser)
 
 ## Architecture
 
-Astro 6 SSR project — an AI-curated daily tech article digest. An external pipeline fetches RSS/Twitter feeds, scores articles with AI, and writes results to Postgres. This app is the **read-only frontend** that displays daily digests.
+Astro 6 project — an AI-curated daily tech article digest. An external pipeline fetches RSS/Twitter feeds, scores articles with AI, and writes results to Postgres. This app is the **read-only frontend** that displays daily digests.
 
 ### Stack
 
-- **Framework**: Astro 6 (`output: 'server'`) with `@astrojs/vercel` adapter
+- **Framework**: Astro 6 (`output: 'static'`, dynamic routes use `prerender = false`) with `@astrojs/vercel` adapter
 - **UI**: Pure `.astro` components + vanilla `<script>` tags for interactivity — no React, no UI framework runtime
 - **Styling**: Tailwind CSS v4 via `@tailwindcss/vite` plugin — CSS-first config in `src/styles/globals.css` (OKLch color system, light/dark via `prefers-color-scheme`)
 - **Database**: Drizzle ORM + PostgreSQL (`postgres` driver). Schema in `src/lib/schema.ts`, client in `src/lib/db.ts`, config in `drizzle.config.ts`
@@ -33,7 +33,7 @@ Astro 6 SSR project — an AI-curated daily tech article digest. An external pip
 
 1. **DB schema** (`src/lib/schema.ts`): `feeds` → `articles` → `scores` / `article_embeddings`; `daily_digests` → `digest_articles` (ranked article selection with summaries); `telegram_logs` for notifications
 2. **Server queries** (`src/lib/queries.ts`): Plain async functions querying Drizzle ORM directly. Key functions: `getLatestDigest()`, `getDigestByDate(date)`, `getDigestList(cursor?)`
-3. **Cache**: SSR pages always query fresh DB data. API endpoints use `Cache-Control` headers for CDN caching
+3. **Cache**: Static pages built at deploy time; dynamic routes (`/digests/[date]`, API endpoints, RSS) run as Vercel Serverless Functions with `Cache-Control` / `Vercel-CDN-Cache-Control` headers
 
 ### File structure
 
@@ -55,9 +55,10 @@ src/
 
 ### Routes
 
-- `/` — SSR: shows today's or latest digest via `getLatestDigest()`
-- `/digests` — SSR initial data + client-side infinite scroll via `IntersectionObserver` → `GET /api/digests?cursor=`
-- `/digests/[date]` — SSR: single digest via `getDigestByDate(date)`
+- `/` — Static (prerendered): shows today's or latest digest via `getLatestDigest()`
+- `/digests` — Static initial data + client-side infinite scroll via `IntersectionObserver` → `GET /api/digests?cursor=`
+- `/digests/[date]` — Dynamic (SSR): single digest via `getDigestByDate(date)`
+- `/rss.xml` — Dynamic (SSR): RSS feed with latest 5 digests
 - `/en/...` — English locale versions of all pages
 - `GET /api/digests` and `GET /api/digests/[date]` — JSON endpoints for digest data
 - `POST /api/search` — Semantic search endpoint

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rover.yikzero.com/sitemap-index.xml

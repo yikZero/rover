@@ -26,6 +26,10 @@ export function useTranslations(locale: Locale) {
   }
 }
 
+export function stripLocalePrefix(pathname: string): string {
+  return pathname.replace(/^\/en(\/|$)/, '/') || '/'
+}
+
 export function richText(
   text: string,
   strongClass = 'font-semibold text-foreground',

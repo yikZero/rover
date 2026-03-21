@@ -1,20 +1,31 @@
 ---
+import { getAbsoluteLocaleUrl } from 'astro:i18n'
 import { ClientRouter } from 'astro:transitions'
 import '@/styles/globals.css'
 import Header from '@/components/header.astro'
 import SearchDialog from '@/components/search-dialog.astro'
+import { defaultLocale, stripLocalePrefix, useTranslations } from '@/i18n/utils'
+import type { Locale } from '@/i18n/utils'
 
 interface Props {
   title?: string
   description?: string
-  locale?: 'zh-CN' | 'en'
+  locale?: Locale
+  ogType?: 'website' | 'article'
 }
 
 const {
   title = 'Rover',
-  description = 'AI-curated daily tech article digest',
-  locale = 'zh-CN',
+  locale = defaultLocale,
+  ogType = 'website',
 } = Astro.props
+const description = Astro.props.description ?? useTranslations(locale)('site.description')
+
+const cleanPath = stripLocalePrefix(Astro.url.pathname)
+const alternateLocale: Locale = locale === defaultLocale ? 'en' : 'zh-CN'
+const canonicalUrl = getAbsoluteLocaleUrl(locale, cleanPath)
+const alternateUrl = getAbsoluteLocaleUrl(alternateLocale, cleanPath)
+const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
 ---
 
 <html lang={locale} class="antialiased" transition:animate="none">
@@ -24,6 +35,21 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang={locale} href={canonicalUrl} />
+    <link rel="alternate" hreflang={alternateLocale} href={alternateUrl} />
+    <link rel="alternate" hreflang="x-default" href={zhUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content={locale} />
+    <meta property="og:site_name" content="Rover" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <link rel="alternate" type="application/rss+xml" title="Rover" href="/rss.xml" />
+    <slot name="head" />
     <ClientRouter fallback="none" />
   </head>
   <body>

@@ -29,7 +29,14 @@ const today = new Date(
 const isToday = digest?.date === today
 ---
 
-<BaseLayout locale={locale} description={t('site.description')}>
+<BaseLayout locale={locale}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Rover',
+    url: Astro.site!.href,
+    description: t('site.description'),
+  })} />
   {error ? (
     <div class="flex min-h-[50vh] flex-col items-center justify-center">
       <p class="text-muted-foreground">{t('error.title')}</p>

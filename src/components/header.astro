@@ -1,7 +1,7 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n'
 import type { Locale } from '@/i18n/utils'
-import { defaultLocale, useTranslations } from '@/i18n/utils'
+import { defaultLocale, stripLocalePrefix, useTranslations } from '@/i18n/utils'
 import Icon from '@/components/icon.astro'
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale
@@ -12,7 +12,7 @@ const digestsHref = getRelativeLocaleUrl(locale, '/digests')
 const aboutHref = getRelativeLocaleUrl(locale, '/about')
 
 const targetLocale: Locale = locale === 'zh-CN' ? 'en' : 'zh-CN'
-const cleanPath = Astro.url.pathname.replace(/^\/en(\/|$)/, '/')
+const cleanPath = stripLocalePrefix(Astro.url.pathname)
 const targetPath = getRelativeLocaleUrl(targetLocale, cleanPath)
 
 const pathname = Astro.url.pathname

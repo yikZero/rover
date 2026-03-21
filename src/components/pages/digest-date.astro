@@ -13,9 +13,23 @@ interface Props {
 
 const { locale, date, digest } = Astro.props
 const t = useTranslations(locale)
+
+const articleTitles = digest.articles
+  .slice(0, 3)
+  .map((a) => locale === 'zh-CN' ? a.titleZh : a.titleEn)
+  .filter(Boolean)
+  .join(' · ')
+const pageDescription = articleTitles || t('site.description')
 ---
 
-<BaseLayout locale={locale} title={`${date} ${t('digestDate.pageTitle')} - Rover`} description={t('site.description')}>
+<BaseLayout locale={locale} title={`${date} ${t('digestDate.pageTitle')} - Rover`} description={pageDescription} ogType="article">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `${date} ${t('digestDate.pageTitle')}`,
+    datePublished: date,
+    publisher: { '@type': 'Organization', name: 'Rover' },
+  })} />
   <section>
     <div>
       <h2 class="text-balance font-semibold text-2xl text-muted-foreground md:text-4xl">

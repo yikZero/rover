@@ -100,6 +100,12 @@ const t = useTranslations(locale)
       }
     }
 
+    function escapeHtml(str: string): string {
+      const el = document.createElement('span')
+      el.textContent = str
+      return el.innerHTML
+    }
+
     function renderResults(results: Array<Record<string, unknown>>) {
       const locale = getLocale()
       const isZh = locale === 'zh-CN'
@@ -114,11 +120,12 @@ const t = useTranslations(locale)
 
       const html = results
         .map((r) => {
-          const title = isZh ? r.titleZh : r.titleEn
+          const title = escapeHtml((isZh ? r.titleZh : r.titleEn) as string)
           const summary = isZh ? r.summaryZh : r.summaryEn
-          return `<a href="${r.url}" target="_blank" rel="noopener noreferrer" class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent">
+          const url = escapeHtml(r.url as string)
+          return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent">
         <div class="font-medium">${title}</div>
-        ${summary ? `<div class="mt-0.5 line-clamp-1 text-muted-foreground text-xs">${summary}</div>` : ''}
+        ${summary ? `<div class="mt-0.5 line-clamp-1 text-muted-foreground text-xs">${escapeHtml(summary as string)}</div>` : ''}
       </a>`
         })
         .join('')

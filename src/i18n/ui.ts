@@ -1,6 +1,6 @@
 export const ui = {
   'zh-CN': {
-    'site.description': 'AI 精选每日科技文章摘要',
+    'site.description': '每日从数百篇科技资讯中，AI 评分精选最值得阅读的文章',
     'digests.title': '历史精选 - Rover',
     'notFound.pageTitle': '页面未找到 - Rover',
     'home.todaysDigest': '今日<strong>精选</strong>',
@@ -34,7 +34,8 @@ export const ui = {
     'footer.switchTo': '切换至 English',
   },
   en: {
-    'site.description': 'AI-curated daily tech article digest',
+    'site.description':
+      'AI scores hundreds of tech articles daily and curates only the most worthwhile reads',
     'digests.title': 'Digest History - Rover',
     'notFound.pageTitle': 'Page Not Found - Rover',
     'home.todaysDigest': "Today's <strong>Digest</strong>",
