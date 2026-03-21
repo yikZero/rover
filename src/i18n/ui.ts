@@ -29,8 +29,11 @@ export const ui = {
     'digestDate.selected': '精选 {count} 篇',
     'card.read': '阅读',
     'error.title': '出了点问题',
+    'error.description': '请稍后再试，或刷新页面重新加载',
     'error.retry': '重试',
     'notFound.title': '页面未找到',
+    'notFound.description': '你访问的页面不存在或已被移除',
+    'notFound.backHome': '返回首页',
     'footer.switchTo': '切换至 English',
   },
   en: {
@@ -64,8 +67,12 @@ export const ui = {
     'digestDate.selected': 'Curated {count}',
     'card.read': 'Read',
     'error.title': 'Something went wrong',
+    'error.description': 'Please try again later or refresh the page',
     'error.retry': 'Try again',
     'notFound.title': 'Page not found',
+    'notFound.description':
+      'The page you are looking for does not exist or has been removed',
+    'notFound.backHome': 'Back to Home',
     'footer.switchTo': 'Switch to 中文',
   },
 } as const

@@ -58,6 +58,15 @@ const t = useTranslations(locale)
       if (e.target === dialog) dialog.close()
     })
 
+    dialog.addEventListener('close', () => {
+      input.value = ''
+      abortController?.abort()
+      abortController = null
+      clearTimeout(debounceTimer)
+      resultsContainer.innerHTML = ''
+      resultsContainer.appendChild(hint)
+    })
+
     input.addEventListener('input', () => {
       clearTimeout(debounceTimer)
       const query = input.value.trim()
@@ -112,9 +121,10 @@ const t = useTranslations(locale)
 
       if (!results?.length) {
         resultsContainer.innerHTML =
-          '<p class="py-6 text-center text-muted-foreground text-sm">' +
-          (isZh ? '没有找到相关文章' : 'No matching articles found') +
-          '</p>'
+          '<div class="flex flex-col items-center py-8">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-8 text-muted-foreground/40"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="m15.5 8-5 5"/><path d="m8.5 8 5 5"/></svg>' +
+          `<p class="mt-3 text-muted-foreground text-sm">${isZh ? '没有找到相关文章' : 'No matching articles found'}</p>` +
+          '</div>'
         return
       }
 

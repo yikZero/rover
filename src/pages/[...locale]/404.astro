@@ -3,6 +3,8 @@ import { getLocaleStaticPaths } from '@/i18n/utils'
 import type { Locale } from '@/i18n/utils'
 import { useTranslations } from '@/i18n/utils'
 import BaseLayout from '@/layouts/base.astro'
+import StatusState from '@/components/status-state.astro'
+import { getRelativeLocaleUrl } from 'astro:i18n'
 
 export function getStaticPaths() {
   return getLocaleStaticPaths()
@@ -13,8 +15,12 @@ const t = useTranslations(locale)
 ---
 
 <BaseLayout locale={locale} title={t('notFound.pageTitle')}>
-  <div class="flex min-h-[50vh] flex-col items-center justify-center">
-    <h1 class="font-bold text-4xl">404</h1>
-    <p class="mt-2 text-muted-foreground">{t('notFound.title')}</p>
-  </div>
+  <StatusState
+    icon="file-search"
+    title={t('notFound.title')}
+    description={t('notFound.description')}
+    href={getRelativeLocaleUrl(locale, '/')}
+    ctaIcon="arrow-left"
+    ctaLabel={t('notFound.backHome')}
+  />
 </BaseLayout>

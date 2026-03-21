@@ -4,6 +4,7 @@ import { richText, useTranslations } from '@/i18n/utils'
 import { getLatestDigest } from '@/lib/queries'
 import DigestCard from '@/components/digest-card.astro'
 import EmptyState from '@/components/empty-state.astro'
+import StatusState from '@/components/status-state.astro'
 import BaseLayout from '@/layouts/base.astro'
 
 interface Props {
@@ -38,10 +39,14 @@ const isToday = digest?.date === today
     description: t('site.description'),
   })} />
   {error ? (
-    <div class="flex min-h-[50vh] flex-col items-center justify-center">
-      <p class="text-muted-foreground">{t('error.title')}</p>
-      <a href={Astro.url.pathname} class="mt-4 text-sm underline">{t('error.retry')}</a>
-    </div>
+    <StatusState
+      icon="circle-alert"
+      title={t('error.title')}
+      description={t('error.description')}
+      href={Astro.url.pathname}
+      ctaIcon="rotate-cw"
+      ctaLabel={t('error.retry')}
+    />
   ) : !digest ? (
     <EmptyState locale={locale} />
   ) : (

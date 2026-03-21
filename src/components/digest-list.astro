@@ -88,6 +88,8 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
       return el.innerHTML
     }
 
+    const isZh = (document.documentElement.lang || 'zh-CN') === 'zh-CN'
+
     async function loadMore() {
       if (!cursor || loading) return
       loading = true
@@ -98,10 +100,9 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
 
       try {
         const res = await fetch(`/api/digests?cursor=${cursor}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
 
-        const locale = document.documentElement.lang || 'zh-CN'
-        const isZh = locale === 'zh-CN'
         const localePath = container!.dataset.localePath || ''
 
         for (const digest of data.digests) {
@@ -131,9 +132,9 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
             card.innerHTML = `<div aria-hidden class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"></div>
 <article class="group relative grid gap-4 py-5 md:grid-cols-[1fr_auto] md:gap-8">
   <div class="grid gap-3 md:grid-cols-[auto_1fr]">
-    <span class="hidden text-muted-foreground text-sm tabular-nums tracking-tighter md:block md:w-10">#${article.rank}</span>
+    <span class="hidden text-muted-foreground text-sm tabular-nums md:block md:w-10">#${article.rank}</span>
     <div>
-      <h3 class="font-medium leading-snug"><span class="text-muted-foreground tabular-nums tracking-tighter md:hidden">#${article.rank} </span>${title}</h3>
+      <h3 class="font-medium leading-snug"><span class="text-muted-foreground tabular-nums md:hidden">#${article.rank} </span>${title}</h3>
       <p class="mt-1 line-clamp-3 text-muted-foreground text-sm leading-relaxed md:line-clamp-2">${summary}</p>
     </div>
   </div>
@@ -160,8 +161,13 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
           status!.innerHTML = ''
         }
       } catch {
-        status!.innerHTML =
-          '<span class="text-destructive">Failed to load</span>'
+        const errorText = isZh
+          ? '加载失败，点击重试'
+          : 'Failed to load, tap to retry'
+        status!.innerHTML = `<button id="retry-btn" class="text-muted-foreground text-sm transition-colors hover:text-foreground">${errorText}</button>`
+        document.getElementById('retry-btn')?.addEventListener('click', () => {
+          loadMore()
+        })
       } finally {
         loading = false
       }

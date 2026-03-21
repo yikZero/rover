@@ -1,0 +1,33 @@
+---
+import Icon from '@/components/icon.astro'
+import type lucide from '@iconify-json/lucide/icons.json'
+
+type IconName = keyof typeof lucide.icons
+
+interface Props {
+  icon: IconName
+  title: string
+  description: string
+  href: string
+  ctaIcon: IconName
+  ctaLabel: string
+  class?: string
+}
+
+const { icon, title, description, href, ctaIcon, ctaLabel, class: className = 'min-h-[50vh]' } = Astro.props
+---
+
+<div class:list={['flex flex-col items-center justify-center', className]}>
+  <div class="flex size-12 items-center justify-center rounded-full bg-muted">
+    <Icon name={icon} class="size-5 text-muted-foreground" />
+  </div>
+  <p class="mt-4 font-semibold text-lg">{title}</p>
+  <p class="mt-1.5 text-muted-foreground text-sm">{description}</p>
+  <a
+    href={href}
+    class="mt-6 inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-opacity hover:opacity-90"
+  >
+    <Icon name={ctaIcon} class="size-3.5" />
+    {ctaLabel}
+  </a>
+</div>
