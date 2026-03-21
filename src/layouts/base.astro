@@ -35,7 +35,6 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <title>{title}</title>
@@ -55,6 +54,7 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <link rel="alternate" type="application/rss+xml" title="Rover" href="/rss.xml" />
+    <script is:inline src="/registerSW.js" defer></script>
     <slot name="head" />
     <ClientRouter fallback="none" />
   </head>
@@ -71,12 +71,5 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
       </div>
     </footer>
     <SearchDialog />
-    <script is:inline>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {})
-        }, { once: true })
-      }
-    </script>
   </body>
 </html>
