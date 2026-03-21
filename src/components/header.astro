@@ -36,7 +36,7 @@ function isActive(href: string) {
       </svg>
     </a>
 
-    <nav class="ml-auto flex items-center gap-1">
+    <nav class="ml-auto hidden items-center gap-1 md:flex">
       {navLinks.map((link) => (
         <a
           href={link.href}
@@ -65,20 +65,131 @@ function isActive(href: string) {
         <span>{locale === 'zh-CN' ? 'EN' : '中文'}</span>
       </a>
     </nav>
+
+    <button
+      type="button"
+      id="menu-toggle"
+      class="ml-auto flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground md:hidden"
+      aria-label="Menu"
+    >
+      <Icon name="menu" class="size-5" />
+    </button>
   </div>
 </header>
 
+<nav
+  id="mobile-drawer"
+  class="pointer-events-none fixed inset-0 z-50 flex flex-col bg-background opacity-0 transition-opacity duration-200 md:hidden"
+>
+  <div class="flex h-14 items-center justify-between px-6">
+    <a href={homeHref} class="flex items-center text-foreground" aria-label="Rover">
+      <svg class="size-6 shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="currentColor" />
+      </svg>
+    </a>
+    <button
+      type="button"
+      id="menu-close"
+      class="flex size-8 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+      aria-label="Close"
+    >
+      <Icon name="x" class="size-5" />
+    </button>
+  </div>
+
+  <div class="flex flex-1 flex-col overflow-y-auto px-6">
+    {navLinks.map((link) => (
+      <div>
+        <div
+          aria-hidden
+          class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"
+        ></div>
+        <a
+          href={link.href}
+          class:list={[
+            'block py-5 font-medium leading-snug transition-colors',
+            isActive(link.href) ? 'text-foreground' : 'text-muted-foreground',
+          ]}
+        >
+          {link.label}
+        </a>
+      </div>
+    ))}
+    <div
+      aria-hidden
+      class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"
+    ></div>
+  </div>
+
+  <div class="flex items-center justify-between px-6 pb-10 pt-6">
+    <button
+      type="button"
+      id="mobile-search-trigger"
+      class="flex flex-1 items-center justify-center gap-1.5 border-border border-r text-sm text-muted-foreground transition-colors"
+    >
+      <Icon name="search" class="size-3.5" />
+      <span>{t('home.search')}</span>
+    </button>
+    <a
+      href={targetPath}
+      class="flex flex-1 items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors"
+      aria-label={t('footer.switchTo')}
+    >
+      <Icon name="globe" class="size-3.5" />
+      <span>{locale === 'zh-CN' ? 'EN' : '中文'}</span>
+    </a>
+  </div>
+</nav>
+
 <script>
   document.addEventListener('astro:page-load', () => {
-    const trigger = document.getElementById('header-search-trigger')
     const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
     const input = document.getElementById('search-input') as HTMLInputElement | null
+    const trigger = document.getElementById('header-search-trigger')
+    const drawer = document.getElementById('mobile-drawer')
+    const menuToggle = document.getElementById('menu-toggle')
+    const menuClose = document.getElementById('menu-close')
+    const mobileSearchTrigger = document.getElementById('mobile-search-trigger')
 
-    if (trigger && dialog && input) {
-      trigger.addEventListener('click', () => {
-        dialog.showModal()
-        input.focus()
-      })
+    function openSearch() {
+      if (!dialog || !input) return
+      dialog.showModal()
+      input.focus()
     }
+
+    function openDrawer() {
+      if (!drawer) return
+      drawer.classList.remove('opacity-0', 'pointer-events-none')
+      drawer.classList.add('opacity-100', 'pointer-events-auto')
+      document.body.style.overflow = 'hidden'
+    }
+
+    function closeDrawer() {
+      if (!drawer) return
+      drawer.classList.remove('opacity-100', 'pointer-events-auto')
+      drawer.classList.add('opacity-0', 'pointer-events-none')
+      document.body.style.overflow = ''
+    }
+
+    function onTriggerClick() {
+      openSearch()
+    }
+
+    function onMobileSearchClick() {
+      closeDrawer()
+      openSearch()
+    }
+
+    trigger?.addEventListener('click', onTriggerClick)
+    menuToggle?.addEventListener('click', openDrawer)
+    menuClose?.addEventListener('click', closeDrawer)
+    mobileSearchTrigger?.addEventListener('click', onMobileSearchClick)
+
+    document.addEventListener('astro:before-swap', () => {
+      trigger?.removeEventListener('click', onTriggerClick)
+      menuToggle?.removeEventListener('click', openDrawer)
+      menuClose?.removeEventListener('click', closeDrawer)
+      mobileSearchTrigger?.removeEventListener('click', onMobileSearchClick)
+    }, { once: true })
   })
 </script>

@@ -9,7 +9,7 @@ const t = useTranslations(locale)
 
 <dialog
   id="search-dialog"
-  class="m-0 mx-auto mt-[20vh] w-full max-w-lg rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-lg backdrop:bg-black/50"
+  class="m-0 mx-auto mt-[20vh] w-[calc(100%-2rem)] max-w-lg rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-lg backdrop:bg-black/50"
 >
   <div class="flex items-center border-border border-b px-4">
     <Icon name="search" class="mr-2 size-4 shrink-0 text-muted-foreground" />
@@ -17,7 +17,7 @@ const t = useTranslations(locale)
       id="search-input"
       type="text"
       placeholder={t('search.placeholder')}
-      class="flex h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+      class="flex h-12 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
       autocomplete="off"
     />
   </div>
