@@ -13,7 +13,43 @@ import {
   feeds,
 } from '@/lib/schema'
 
+const rateLimitMap = new Map<string, number[]>()
+const RATE_LIMIT_WINDOW = 60_000
+const RATE_LIMIT_MAX = 5
+
+let lastCleanup = Date.now()
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  if (now - lastCleanup > RATE_LIMIT_WINDOW) {
+    for (const [key, ts] of rateLimitMap) {
+      if (ts.every((t) => now - t >= RATE_LIMIT_WINDOW))
+        rateLimitMap.delete(key)
+    }
+    lastCleanup = now
+  }
+  const timestamps = rateLimitMap.get(ip) ?? []
+  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW)
+  if (recent.length >= RATE_LIMIT_MAX) return true
+  recent.push(now)
+  rateLimitMap.set(ip, recent)
+  return false
+}
+
 export const POST: APIRoute = async ({ request }) => {
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+
+  if (checkRateLimit(ip)) {
+    return new Response(JSON.stringify({ error: 'Too many requests' }), {
+      status: 429,
+      headers: {
+        'Content-Type': 'application/json',
+        'Retry-After': '60',
+      },
+    })
+  }
+
   const body = (await request.json().catch(() => ({}))) as {
     query?: string
   }

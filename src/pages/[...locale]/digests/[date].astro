@@ -9,7 +9,7 @@ import StatusState from '@/components/status-state.astro'
 import BaseLayout from '@/layouts/base.astro'
 import { getRelativeLocaleUrl } from 'astro:i18n'
 
-Astro.response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800')
+Astro.response.headers.set('Vercel-CDN-Cache-Control', 'public, s-maxage=604800, stale-while-revalidate=2592000')
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale
 const t = useTranslations(locale)
