@@ -31,10 +31,7 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
 <html lang={locale} class="antialiased" transition:animate="none">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <title>{title}</title>
@@ -54,7 +51,6 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <link rel="alternate" type="application/rss+xml" title="Rover" href="/rss.xml" />
-    <script is:inline src="/registerSW.js" defer></script>
     <slot name="head" />
     <ClientRouter fallback="none" />
   </head>
@@ -63,7 +59,7 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <main class="mx-auto max-w-5xl px-6 py-6 md:py-10">
       <slot />
     </main>
-    <footer class="mx-auto max-w-5xl px-6 pb-8 pt-4 safe-area-bottom">
+    <footer class="mx-auto max-w-5xl px-6 pb-8 pt-4 ">
       <div class="border-border/50 border-t pt-4">
         <p class="text-center text-muted-foreground/50 text-xs">
           Designed & built by <a href="https://ro.yikzero.com/" target="_blank" rel="noopener noreferrer" class="text-muted-foreground/70 transition-colors hover:text-muted-foreground">yikZero</a>
