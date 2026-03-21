@@ -33,11 +33,15 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <style>
+      html { background-color: #ffffff; color-scheme: light dark; }
+      @media (prefers-color-scheme: dark) { html { background-color: #0a0a0a; } }
+    </style>
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -56,6 +60,21 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta name="twitter:description" content={description} />
     <link rel="alternate" type="application/rss+xml" title="Rover" href="/rss.xml" />
     <slot name="head" />
+    <script is:inline>
+      (function() {
+        var s = localStorage.getItem('preferred-locale')
+        if (!s) return
+        var p = location.pathname
+        var isEn = p === '/en' || p === '/en/' || p.startsWith('/en/')
+        var cur = isEn ? 'en' : 'zh-CN'
+        if (s === cur) return
+        if (s === 'en' && !isEn) {
+          location.replace('/en' + (p === '/' ? '' : p))
+        } else if (s === 'zh-CN' && isEn) {
+          location.replace(p.replace(/^\/en\/?/, '/') || '/')
+        }
+      })()
+    </script>
     <ClientRouter fallback="none" />
   </head>
   <body>

@@ -58,8 +58,9 @@ function isActive(href: string) {
       </button>
       <a
         href={targetPath}
-        class="flex items-center gap-1 rounded-md px-2 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
+        class="locale-switch flex items-center gap-1 rounded-md px-2 py-1.5 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground"
         aria-label={t('footer.switchTo')}
+        data-locale={targetLocale}
       >
         <Icon name="globe" class="size-3.5" />
         <span>{locale === 'zh-CN' ? 'EN' : '中文'}</span>
@@ -132,8 +133,9 @@ function isActive(href: string) {
     </button>
     <a
       href={targetPath}
-      class="flex flex-1 items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors"
+      class="locale-switch flex flex-1 items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors"
       aria-label={t('footer.switchTo')}
+      data-locale={targetLocale}
     >
       <Icon name="globe" class="size-3.5" />
       <span>{locale === 'zh-CN' ? 'EN' : '中文'}</span>
@@ -184,6 +186,13 @@ function isActive(href: string) {
     menuToggle?.addEventListener('click', openDrawer)
     menuClose?.addEventListener('click', closeDrawer)
     mobileSearchTrigger?.addEventListener('click', onMobileSearchClick)
+
+    document.querySelectorAll<HTMLAnchorElement>('.locale-switch').forEach((el) => {
+      el.addEventListener('click', () => {
+        const locale = el.dataset.locale
+        if (locale) localStorage.setItem('preferred-locale', locale)
+      })
+    })
 
     document.addEventListener('astro:before-swap', () => {
       trigger?.removeEventListener('click', onTriggerClick)
