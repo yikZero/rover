@@ -8,6 +8,7 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'never',
   adapter: node({ mode: 'standalone' }),
+  server: { host: '127.0.0.1', port: 47501 },
   integrations: [
     sitemap({
       filter: (page) => !page.includes('/404'),
