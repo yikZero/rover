@@ -4,7 +4,7 @@ AI-curated daily tech article digest. An external pipeline fetches RSS/Twitter f
 
 ## Tech Stack
 
-- **Framework**: [Astro 6](https://astro.build) with `@astrojs/vercel` adapter
+- **Framework**: [Astro 6](https://astro.build) with `@astrojs/node` adapter
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com) (OKLch color system, light/dark via `prefers-color-scheme`)
 - **Database**: [Drizzle ORM](https://orm.drizzle.team) + PostgreSQL
 - **Search**: Semantic search via [Gemini](https://ai.google.dev) embeddings + pgvector
@@ -40,7 +40,8 @@ bun run db:studio    # Open Drizzle Studio
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Yes | Gemini API key for semantic search |
 | `CRON_SECRET` | Yes | Bearer token for revalidation endpoint |
-| `DEPLOY_HOOK_URL` | No | Vercel deploy hook URL |
+| `HOST` | No | Server bind address (default `0.0.0.0`) |
+| `PORT` | No | Server port (default `4321`) |
 
 ## License
 
