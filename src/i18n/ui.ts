@@ -31,9 +31,10 @@ export const ui = {
     'error.title': '出了点问题',
     'error.description': '请稍后再试，或刷新页面重新加载',
     'error.retry': '重试',
-    'notFound.title': '页面未找到',
-    'notFound.description': '你访问的页面不存在或已被移除',
+    'notFound.title': '内容未找到',
+    'notFound.description': '你要找的页面可能已被移除，或尚未发布',
     'notFound.backHome': '返回首页',
+    'notFound.browseHistory': '浏览历史精选',
     'footer.switchTo': '切换至 English',
   },
   en: {
@@ -69,10 +70,11 @@ export const ui = {
     'error.title': 'Something went wrong',
     'error.description': 'Please try again later or refresh the page',
     'error.retry': 'Try again',
-    'notFound.title': 'Page not found',
+    'notFound.title': 'Content not found',
     'notFound.description':
-      'The page you are looking for does not exist or has been removed',
+      'The page you are looking for may have been removed or is not yet published',
     'notFound.backHome': 'Back to Home',
+    'notFound.browseHistory': 'Browse History',
     'footer.switchTo': 'Switch to 中文',
   },
 } as const

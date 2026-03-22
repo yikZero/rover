@@ -4,7 +4,7 @@ export const prerender = false
 import type { Locale } from '@/i18n/utils'
 import { defaultLocale, useTranslations } from '@/i18n/utils'
 import BaseLayout from '@/layouts/base.astro'
-import StatusState from '@/components/status-state.astro'
+import Icon from '@/components/icon.astro'
 import { getRelativeLocaleUrl } from 'astro:i18n'
 
 const locale = (Astro.currentLocale ?? defaultLocale) as Locale
@@ -12,12 +12,24 @@ const t = useTranslations(locale)
 ---
 
 <BaseLayout locale={locale} title={t('notFound.pageTitle')}>
-  <StatusState
-    icon="file-search"
-    title={t('notFound.title')}
-    description={t('notFound.description')}
-    href={getRelativeLocaleUrl(locale, '/')}
-    ctaIcon="arrow-left"
-    ctaLabel={t('notFound.backHome')}
-  />
+  <div class="flex min-h-[calc(100dvh-10rem)] flex-col items-center justify-center">
+    <p class="font-bold text-[8rem] leading-none text-border select-none">404</p>
+    <p class="mt-4 font-semibold text-lg">{t('notFound.title')}</p>
+    <p class="mt-1.5 text-center text-muted-foreground text-sm">{t('notFound.description')}</p>
+    <div class="mt-8 flex items-center gap-3">
+      <a
+        href={getRelativeLocaleUrl(locale, '/')}
+        class="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-opacity hover:opacity-90"
+      >
+        <Icon name="arrow-left" class="size-3.5" />
+        {t('notFound.backHome')}
+      </a>
+      <a
+        href={getRelativeLocaleUrl(locale, '/digests')}
+        class="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 font-medium text-sm transition-colors hover:bg-muted"
+      >
+        {t('notFound.browseHistory')}
+      </a>
+    </div>
+  </div>
 </BaseLayout>
