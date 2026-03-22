@@ -64,8 +64,9 @@ Add `data-pagefind-body` to the article list wrapper in `digest-date.astro` (NOT
 The site sets `<html lang="zh-CN">` or `<html lang="en">` per locale. Pagefind auto-detects the `lang` attribute and indexes accordingly. Each article is indexed twice (once per locale), but both versions are useful since they have different titles and summaries. At search time, filter results by the user's current locale using `data-pagefind-filter-locale`:
 
 ```astro
-<!-- digest-date.astro, on the same wrapper -->
-<div data-pagefind-body data-pagefind-filter-locale={locale}>
+<!-- digest-date.astro, hidden span inside the wrapper -->
+<div data-pagefind-body>
+  <span data-pagefind-filter={`locale:${locale}`} class="hidden"></span>
 ```
 
 At query time: `pagefind.search(query, { filters: { locale: currentLocale } })`.
