@@ -56,7 +56,7 @@ const isToday = digest?.date === today
           class="text-balance font-semibold text-2xl text-muted-foreground"
           set:html={richText(isToday ? t('home.todaysDigest') : t('home.latestDigest'))}
         />
-        <p class="mt-2 font-normal text-muted-foreground/75 text-sm">
+        <p class="mt-2 font-normal text-muted-foreground text-sm">
           {digest.date}
           {!isToday && ` · ${t('home.notGenerated')}`}
           {digest.stats.fetched > 0 && (

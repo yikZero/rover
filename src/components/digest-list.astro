@@ -27,7 +27,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
           {digest.date}
         </a>
         {digest.stats.selected > 0 && (
-          <span class="text-muted-foreground/75 text-xs">
+          <span class="text-muted-foreground text-xs">
             {t('digests.selected', { count: digest.stats.selected })}
           </span>
         )}
@@ -117,7 +117,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
             const selectedText = isZh
               ? `精选 ${digest.stats.selected} 篇`
               : `Selected ${digest.stats.selected}`
-            header.innerHTML += `<span class="text-muted-foreground/75 text-xs">${selectedText}</span>`
+            header.innerHTML += `<span class="text-muted-foreground text-xs">${selectedText}</span>`
           }
           section.appendChild(header)
 
@@ -134,7 +134,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
   <div class="grid gap-3 md:grid-cols-[auto_1fr]">
     <span class="hidden text-muted-foreground text-sm tabular-nums md:block md:w-10">#${article.rank}</span>
     <div>
-      <h3 class="font-medium leading-snug"><span class="text-muted-foreground tabular-nums md:hidden">#${article.rank} </span>${title}</h3>
+      <h2 class="font-medium leading-snug text-base"><span class="text-muted-foreground tabular-nums md:hidden">#${article.rank} </span>${title}</h2>
       <p class="mt-1 line-clamp-3 text-muted-foreground text-sm leading-relaxed md:line-clamp-2">${summary}</p>
     </div>
   </div>
