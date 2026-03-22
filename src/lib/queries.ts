@@ -127,11 +127,42 @@ export async function getDigestList(cursor?: string): Promise<{
   return { digests: digestsWithArticles, nextCursor }
 }
 
-export async function getAllDigestDates(): Promise<string[]> {
-  const results = await db
-    .select({ date: dailyDigests.date })
+export async function getAllDigests(): Promise<DigestWithArticles[]> {
+  const digests = await db
+    .select()
     .from(dailyDigests)
     .orderBy(asc(dailyDigests.date))
 
-  return results.map((r) => r.date)
+  const digestIds = digests.map((d) => d.id)
+  if (digestIds.length === 0) return []
+
+  const allItems = await db
+    .select({
+      ...digestArticleSelect,
+      digestId: digestArticles.digestId,
+    })
+    .from(digestArticles)
+    .innerJoin(articles, eq(digestArticles.articleId, articles.id))
+    .innerJoin(feeds, eq(articles.feedId, feeds.id))
+    .where(inArray(digestArticles.digestId, digestIds))
+    .orderBy(digestArticles.digestId, digestArticles.rank)
+
+  const articlesByDigest = new Map<number, DigestArticle[]>()
+  for (const item of allItems) {
+    const { digestId, ...article } = item
+    if (!articlesByDigest.has(digestId)) {
+      articlesByDigest.set(digestId, [])
+    }
+    articlesByDigest.get(digestId)?.push(article as DigestArticle)
+  }
+
+  return digests.map((digest) => ({
+    date: digest.date,
+    articles: articlesByDigest.get(digest.id) ?? [],
+    stats: {
+      fetched: digest.totalFetched,
+      scored: digest.totalScored,
+      selected: digest.totalSelected,
+    },
+  }))
 }

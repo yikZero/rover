@@ -1,43 +1,23 @@
 ---
-export const prerender = false
-
 import type { Locale } from '@/i18n/utils'
-import { defaultLocale, useTranslations } from '@/i18n/utils'
-import { getDigestByDate } from '@/lib/queries'
+import { defaultLocale, locales } from '@/i18n/utils'
+import type { DigestWithArticles } from '@/lib/types'
+import { getAllDigests } from '@/lib/queries'
 import DigestDate from '@/components/pages/digest-date.astro'
-import StatusState from '@/components/status-state.astro'
-import BaseLayout from '@/layouts/base.astro'
-import { getRelativeLocaleUrl } from 'astro:i18n'
 
-Astro.response.headers.set('Cache-Control', 'public, max-age=604800')
-
-const locale = (Astro.currentLocale ?? defaultLocale) as Locale
-const t = useTranslations(locale)
-const date = Astro.params.date!
-
-let digest = null
-let error = false
-try {
-  digest = await getDigestByDate(date)
-} catch {
-  error = true
+export async function getStaticPaths() {
+  const digests = await getAllDigests()
+  return locales.flatMap((locale) =>
+    digests.map((digest) => ({
+      params: {
+        locale: locale === defaultLocale ? undefined : locale,
+        date: digest.date,
+      },
+      props: { locale, digest },
+    })),
+  )
 }
 
-if (!error && !digest) {
-  return Astro.redirect(getRelativeLocaleUrl(locale, '/404'))
-}
+const { locale, digest } = Astro.props as { locale: Locale; digest: DigestWithArticles }
 ---
-{error ? (
-  <BaseLayout locale={locale} title={t('error.title')}>
-    <StatusState
-      icon="circle-alert"
-      title={t('error.title')}
-      description={t('error.description')}
-      href={Astro.url.pathname}
-      ctaIcon="rotate-cw"
-      ctaLabel={t('error.retry')}
-    />
-  </BaseLayout>
-) : (
-  <DigestDate locale={locale} date={date} digest={digest!} />
-)}
+<DigestDate locale={locale} date={digest.date} digest={digest} />

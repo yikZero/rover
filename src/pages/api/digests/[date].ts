@@ -1,29 +1,19 @@
 import type { APIRoute } from 'astro'
-import { getDigestByDate } from '@/lib/queries'
+import { getAllDigests } from '@/lib/queries'
+import type { DigestWithArticles } from '@/lib/types'
 
-export const prerender = false
+export async function getStaticPaths() {
+  const digests = await getAllDigests()
+  return digests.map((digest) => ({
+    params: { date: digest.date },
+    props: { digest },
+  }))
+}
 
-export const GET: APIRoute = async ({ params }) => {
-  const { date } = params
-  if (!date) {
-    return new Response(JSON.stringify({ error: 'Date required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
-
-  const digest = await getDigestByDate(date)
-  if (!digest) {
-    return new Response(JSON.stringify({ error: 'Digest not found' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }
+export const GET: APIRoute = async ({ props }) => {
+  const { digest } = props as { digest: DigestWithArticles }
 
   return new Response(JSON.stringify(digest), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=604800',
-    },
+    headers: { 'Content-Type': 'application/json' },
   })
 }

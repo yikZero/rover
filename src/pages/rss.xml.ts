@@ -1,5 +1,3 @@
-export const prerender = false
-
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
 import { defaultLocale, useTranslations } from '@/i18n/utils'
@@ -23,7 +21,7 @@ export async function GET(context: APIContext) {
       title: 'Rover',
       description: t('site.description'),
       trailingSlash: false,
-      site: context.site?.href,
+      site: context.site?.href ?? 'https://rover.yikzero.com',
       items: digests.slice(0, 5).map((digest) => ({
         title: `Rover ${digest.date} ${t('digestDate.pageTitle')}`,
         description: digest.articles
@@ -40,8 +38,6 @@ export async function GET(context: APIContext) {
         pubDate: new Date(digest.date),
       })),
     })
-
-    response.headers.set('Cache-Control', 'public, max-age=3600')
 
     return response
   } catch {
