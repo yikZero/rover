@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.8",
+    "@astrojs/node": "^10.0.3",
     "@astrojs/rss": "^4.0.17",
     "@astrojs/sitemap": "^3.7.1",
-    "@astrojs/vercel": "^10.0.2",
     "@google/genai": "^1.46.0",
     "@iconify-json/lucide": "^1.2.98",
     "astro": "^6.0.8",
