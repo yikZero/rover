@@ -35,7 +35,7 @@ jobs:
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
-      - name: Deploy to server
+      - name: Deploy dist
         uses: easingthemes/ssh-deploy@v5.1.1
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
@@ -46,7 +46,17 @@ jobs:
           TARGET: /opt/rover/dist/
           ARGS: -avz --delete
 
-      - name: Restart service
+      - name: Deploy package.json
+        uses: easingthemes/ssh-deploy@v5.1.1
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+          REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
+          REMOTE_PORT: ${{ secrets.SERVER_PORT }}
+          SOURCE: package.json
+          TARGET: /opt/rover/
+
+      - name: Install dependencies and restart
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -55,4 +65,5 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             cd /opt/rover
+            bun install --production
             pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=/opt/rover/.env"
