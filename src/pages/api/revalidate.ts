@@ -1,6 +1,6 @@
 export const prerender = false
 
-import { CRON_SECRET, DEPLOY_HOOK_URL } from 'astro:env/server'
+import { CRON_SECRET } from 'astro:env/server'
 import type { APIRoute } from 'astro'
 
 export const POST: APIRoute = async ({ request }) => {
@@ -12,21 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
     })
   }
 
-  let rebuildTriggered = false
-  let rebuildError: string | null = null
-
-  if (DEPLOY_HOOK_URL) {
-    try {
-      const res = await fetch(DEPLOY_HOOK_URL, { method: 'POST' })
-      rebuildTriggered = res.ok
-      if (!res.ok) rebuildError = `Deploy hook returned ${res.status}`
-    } catch (err) {
-      rebuildError = err instanceof Error ? err.message : 'Unknown error'
-    }
-  }
-
-  return new Response(
-    JSON.stringify({ revalidated: true, rebuildTriggered, rebuildError }),
-    { headers: { 'Content-Type': 'application/json' } },
-  )
+  return new Response(JSON.stringify({ status: 'ok' }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
 }

@@ -28,7 +28,6 @@ export default defineConfig({
       DATABASE_URL: envField.string({ context: 'server', access: 'secret' }),
       GOOGLE_GENERATIVE_AI_API_KEY: envField.string({ context: 'server', access: 'secret' }),
       CRON_SECRET: envField.string({ context: 'server', access: 'secret' }),
-      DEPLOY_HOOK_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   vite: {
