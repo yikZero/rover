@@ -48,26 +48,28 @@ jobs:
           mv dist deploy/
           cp package.json bun.lock deploy/
 
-      - name: Deploy
-        uses: easingthemes/ssh-deploy@v5.1.1
-        with:
-          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
-          REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
-          REMOTE_PORT: ${{ secrets.SERVER_PORT }}
-          SOURCE: deploy/
-          TARGET: /opt/rover/
-          ARGS: -avz --delete
-          EXCLUDE: node_modules, .env
+      - name: Setup SSH
+        env:
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USERNAME }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" >> ~/.ssh/known_hosts
+          cat >> ~/.ssh/config <<EOF
+          Host rover
+            HostName $SERVER_HOST
+            User $SERVER_USER
+            Port $SERVER_PORT
+            IdentityFile ~/.ssh/deploy_key
+          EOF
 
-      - name: Install dependencies and restart
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          script: |
-            cd /opt/rover
-            bun install --production --frozen-lockfile
-            pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=/opt/rover/.env"
+      - name: Deploy and restart
+        run: |
+          rsync -avz --delete --exclude node_modules --exclude .env \
+            -e ssh deploy/ rover:/opt/rover/
+
+          ssh rover 'cd /opt/rover && bun install --production --frozen-lockfile && (pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=/opt/rover/.env")'
