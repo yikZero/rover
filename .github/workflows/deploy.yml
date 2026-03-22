@@ -72,4 +72,4 @@ jobs:
           rsync -avz --delete --exclude node_modules --exclude .env \
             -e ssh deploy/ rover:/opt/rover/
 
-          ssh rover 'cd /opt/rover && bun install --production --frozen-lockfile && (pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=/opt/rover/.env")'
+          ssh rover 'cd /opt/rover && bun install --production --frozen-lockfile --ignore-scripts && (pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=/opt/rover/.env")'
