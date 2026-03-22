@@ -54,7 +54,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
 </template>
 
 <script>
-  document.addEventListener('astro:page-load', () => {
+  ;(() => {
     const container = document.getElementById('digest-list')
     const sentinel = document.getElementById('scroll-sentinel')
     const status = document.getElementById('scroll-status')
@@ -172,5 +172,5 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
         loading = false
       }
     }
-  })
+  })()
 </script>

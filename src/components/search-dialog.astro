@@ -60,7 +60,7 @@ const t = useTranslations(locale)
     }
   })
 
-  document.addEventListener('astro:page-load', () => {
+  {
     const dialog = document.getElementById('search-dialog') as HTMLDialogElement
     const input = document.getElementById('search-input') as HTMLInputElement
     const hint = document.getElementById('search-hint')!
@@ -159,5 +159,5 @@ const t = useTranslations(locale)
       items.innerHTML = `<p class="px-3 py-1.5 text-muted-foreground text-xs">${label}</p>${html}`
       showOnly(items)
     }
-  })
+  }
 </script>
