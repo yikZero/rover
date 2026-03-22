@@ -50,4 +50,4 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             cd /opt/rover
-            pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=.env"
+            pm2 restart rover 2>/dev/null || pm2 start dist/server/entry.mjs --name rover --node-args="--env-file=/opt/rover/.env"
