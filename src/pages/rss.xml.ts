@@ -41,10 +41,7 @@ export async function GET(context: APIContext) {
       })),
     })
 
-    response.headers.set(
-      'Vercel-CDN-Cache-Control',
-      'public, s-maxage=3600, stale-while-revalidate=86400',
-    )
+    response.headers.set('Cache-Control', 'public, max-age=3600')
 
     return response
   } catch {
