@@ -1,6 +1,6 @@
 ---
 import { getAbsoluteLocaleUrl } from 'astro:i18n'
-import { ClientRouter } from 'astro:transitions'
+
 import '@/styles/globals.css'
 import Header from '@/components/header.astro'
 import SearchDialog from '@/components/search-dialog.astro'
@@ -28,7 +28,7 @@ const alternateUrl = getAbsoluteLocaleUrl(alternateLocale, cleanPath)
 const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
 ---
 
-<html lang={locale} class="antialiased" transition:animate="none">
+<html lang={locale} class="antialiased">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -57,7 +57,7 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta name="twitter:image" content={`${Astro.site}og-image.png`} />
     <link rel="alternate" type="application/rss+xml" title="Rover" href="/rss.xml" />
     <slot name="head" />
-    <ClientRouter fallback="none" />
+
   </head>
   <body>
     <Header />

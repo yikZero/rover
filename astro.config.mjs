@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import node from '@astrojs/node'
 import sitemap from '@astrojs/sitemap'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, envField } from 'astro/config'
 
 export default defineConfig({
@@ -32,6 +33,6 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), visualizer({ emitFile: true, filename: 'stats.html' })],
   },
 })
