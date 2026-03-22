@@ -57,7 +57,8 @@ jobs:
           REMOTE_PORT: ${{ secrets.SERVER_PORT }}
           SOURCE: deploy/
           TARGET: /opt/rover/
-          ARGS: -avz --delete --exclude node_modules --exclude .env
+          ARGS: -avz --delete
+          EXCLUDE: node_modules, .env
 
       - name: Install dependencies and restart
         uses: appleboy/ssh-action@v1.2.5

@@ -1,16 +1,13 @@
 ---
-import { getLocaleStaticPaths } from '@/i18n/utils'
+export const prerender = false
+
 import type { Locale } from '@/i18n/utils'
-import { useTranslations } from '@/i18n/utils'
+import { defaultLocale, useTranslations } from '@/i18n/utils'
 import BaseLayout from '@/layouts/base.astro'
 import StatusState from '@/components/status-state.astro'
 import { getRelativeLocaleUrl } from 'astro:i18n'
 
-export function getStaticPaths() {
-  return getLocaleStaticPaths()
-}
-
-const { locale } = Astro.props as { locale: Locale }
+const locale = (Astro.currentLocale ?? defaultLocale) as Locale
 const t = useTranslations(locale)
 ---
 
