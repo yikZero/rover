@@ -8,6 +8,9 @@ export default defineConfig({
   site: 'https://rover.yikzero.com',
   output: 'static',
   trailingSlash: 'never',
+  build: {
+    inlineStylesheets: 'always',
+  },
   adapter: node({ mode: 'standalone' }),
   server: { host: '127.0.0.1', port: 47501 },
   integrations: [

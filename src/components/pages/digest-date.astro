@@ -32,12 +32,12 @@ const pageDescription = articleTitles || t('site.description')
   })} />
   <section>
     <div>
-      <h2 class="text-balance font-semibold text-2xl text-muted-foreground">
+      <h1 class="text-balance font-semibold text-2xl text-muted-foreground">
         {date}{' '}
         <Fragment set:html={richText(t('digestDate.digest'))} />
-      </h2>
+      </h1>
       {digest.stats.fetched > 0 && (
-        <p class="mt-1.5 font-normal text-muted-foreground/60 text-sm">
+        <p class="mt-1.5 font-normal text-muted-foreground/75 text-sm">
           {t('digestDate.fetched', { count: digest.stats.fetched })} ·{' '}
           {t('digestDate.selected', { count: digest.stats.selected })}
         </p>

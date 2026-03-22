@@ -27,7 +27,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
           {digest.date}
         </a>
         {digest.stats.selected > 0 && (
-          <span class="text-muted-foreground/60 text-xs">
+          <span class="text-muted-foreground/75 text-xs">
             {t('digests.selected', { count: digest.stats.selected })}
           </span>
         )}
@@ -117,7 +117,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
             const selectedText = isZh
               ? `精选 ${digest.stats.selected} 篇`
               : `Selected ${digest.stats.selected}`
-            header.innerHTML += `<span class="text-muted-foreground/60 text-xs">${selectedText}</span>`
+            header.innerHTML += `<span class="text-muted-foreground/75 text-xs">${selectedText}</span>`
           }
           section.appendChild(header)
 
@@ -126,7 +126,7 @@ const localePath = getRelativeLocaleUrl(locale, '/').replace(/\/$/, '')
             const summary = escapeHtml(isZh ? article.summaryZh : article.summaryEn)
             const url = escapeHtml(article.url)
             const titleEn = escapeHtml(article.titleEn)
-            const badgeClass = 'bg-muted text-muted-foreground'
+            const badgeClass = 'bg-muted text-foreground/60'
 
             const card = document.createElement('div')
             card.innerHTML = `<div aria-hidden class="h-px bg-[length:4px_1px] bg-repeat-x opacity-20 [background-image:linear-gradient(90deg,var(--color-foreground)_1px,transparent_1px)]"></div>

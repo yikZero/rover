@@ -31,7 +31,7 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
 <html lang={locale} class="antialiased">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
     <title>{title}</title>
@@ -60,14 +60,17 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
 
   </head>
   <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring">
+      Skip to main content
+    </a>
     <Header />
-    <main class="mx-auto max-w-5xl px-6 py-6 md:py-8">
+    <main id="main-content" class="mx-auto max-w-5xl px-6 py-6 md:py-8">
       <slot />
     </main>
     <footer class="mx-auto max-w-5xl px-6 pb-8 pt-4 ">
       <div class="border-border/50 border-t pt-4">
-        <p class="text-center text-muted-foreground/50 text-sm">
-          Designed & built by <a href="https://ro.yikzero.com/" target="_blank" rel="noopener noreferrer" class="text-muted-foreground/70 transition-colors hover:text-muted-foreground">yikZero</a>
+        <p class="text-center text-muted-foreground/65 text-sm">
+          Designed & built by <a href="https://ro.yikzero.com/" target="_blank" rel="noopener noreferrer" class="text-muted-foreground underline decoration-muted-foreground/30 transition-colors hover:text-foreground">yikZero</a>
         </p>
       </div>
     </footer>

@@ -42,7 +42,7 @@ const interests = isZh
   <article class="prose">
     {isZh ? (
       <section>
-        <h2>Rover 是什么</h2>
+        <h1>Rover 是什么</h1>
         <p>Rover 是一个 AI 驱动的每日科技文章精选。</p>
         <p>
           它的后台 Pipeline 每 3 小时自动从 25 个 RSS 源和 45+ Twitter 账号抓取文章，使用 AI 对每篇文章进行 8 个维度的评分（0-10 分），然后在每天北京时间 10:00 自动生成当日精选。
@@ -117,7 +117,7 @@ const interests = isZh
       </section>
     ) : (
       <section>
-        <h2>What is Rover</h2>
+        <h1>What is Rover</h1>
         <p>Rover is an AI-powered daily tech article digest.</p>
         <p>
           Its backend Pipeline automatically fetches articles from 25 RSS feeds and 45+ Twitter accounts every 3 hours, scores each article across 8 dimensions (0-10) using AI, and generates a curated daily digest at 10:00 Beijing time.
@@ -207,6 +207,7 @@ const interests = isZh
     margin-top: 0;
   }
 
+  .prose h1,
   .prose h2 {
     font-size: 1.25rem;
     font-weight: 600;
