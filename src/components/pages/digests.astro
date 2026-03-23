@@ -2,7 +2,7 @@
 import type { Locale } from '@/i18n/utils'
 import { richText, useTranslations } from '@/i18n/utils'
 import type { DigestWithArticles } from '@/lib/types'
-import { getDigestList } from '@/lib/queries'
+import { getDigestList, getLatestDigest } from '@/lib/queries'
 import DigestList from '@/components/digest-list.astro'
 import StatusState from '@/components/status-state.astro'
 import BaseLayout from '@/layouts/base.astro'
@@ -17,7 +17,8 @@ const t = useTranslations(locale)
 let initialData: { digests: DigestWithArticles[]; nextCursor: string | null } = { digests: [], nextCursor: null }
 let error = false
 try {
-  initialData = await getDigestList()
+  const latest = await getLatestDigest()
+  initialData = await getDigestList(latest?.date)
 } catch {
   error = true
 }
