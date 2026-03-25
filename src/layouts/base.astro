@@ -56,6 +56,13 @@ const zhUrl = getAbsoluteLocaleUrl(defaultLocale, cleanPath)
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={`${Astro.site}og-image.png`} />
     <link rel="alternate" type="application/rss+xml" title="Rover" href="/rss.xml" />
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-2VPFVWTQ6K"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2VPFVWTQ6K');
+    </script>
     <slot name="head" />
 
   </head>
